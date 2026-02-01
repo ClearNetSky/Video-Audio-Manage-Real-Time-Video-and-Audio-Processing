@@ -3,13 +3,15 @@ document.addEventListener('DOMContentLoaded', function() {
         videoSettings: {
             brightness: 100, contrast: 100, saturation: 100,
             sharpness: 0, hue: 0, grayscale: 0,
-            invert: 0, sepia: 0, blur: 0
+            invert: 0, sepia: 0, blur: 0,
+            opacity: 100, vignette: 0, temperature: 0
         },
         audioSettings: {
             volume: 100, bass: 0, pan: 0,
             reverb: false, reverbLevel: 30,
             delay: false, delayLevel: 30,
-            stereoReverse: false
+            stereoReverse: false,
+            equalizer: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
         },
         enabled: true
     };
@@ -62,7 +64,7 @@ document.addEventListener('DOMContentLoaded', function() {
     
     function updateUIWithSettings() {
         document.getElementById('extensionToggle').checked = currentSettings.enabled;
-        document.getElementById('toggleStatus').textContent = currentSettings.enabled ? 'Enabled' : 'Disabled';
+        document.getElementById('toggleStatus').textContent = chrome.i18n.getMessage(currentSettings.enabled ? 'enabled' : 'disabled');
         
         // Video settings
         setSliderValue('brightness', currentSettings.videoSettings.brightness);
@@ -74,6 +76,8 @@ document.addEventListener('DOMContentLoaded', function() {
         setSliderValue('invert', currentSettings.videoSettings.invert);
         setSliderValue('sepia', currentSettings.videoSettings.sepia);
         setSliderValue('blur', currentSettings.videoSettings.blur);
+        setSliderValue('opacity', currentSettings.videoSettings.opacity || 100);
+        setSliderValue('vignette', currentSettings.videoSettings.vignette || 0);
         
         // Audio settings
         setSliderValue('volume', currentSettings.audioSettings.volume);
@@ -85,6 +89,18 @@ document.addEventListener('DOMContentLoaded', function() {
         document.getElementById('stereoReverse').checked = currentSettings.audioSettings.stereoReverse || false;
         document.getElementById('reverb').checked = currentSettings.audioSettings.reverb || false;
         document.getElementById('delay').checked = currentSettings.audioSettings.delay || false;
+        
+        // Equalizer
+        const eqIds = ['eq-32', 'eq-64', 'eq-125', 'eq-250', 'eq-500', 'eq-1k', 'eq-2k', 'eq-4k', 'eq-8k', 'eq-16k'];
+        if (currentSettings.audioSettings.equalizer) {
+            eqIds.forEach((id, index) => {
+                const slider = document.getElementById(id);
+                if (slider && currentSettings.audioSettings.equalizer[index] !== undefined) {
+                    slider.value = currentSettings.audioSettings.equalizer[index];
+                    updateEQDisplay(id, currentSettings.audioSettings.equalizer[index]);
+                }
+            });
+        }
         
         toggleDependentControls();
     }
@@ -106,6 +122,7 @@ document.addEventListener('DOMContentLoaded', function() {
             case 'contrast':
             case 'saturation':
             case 'volume':
+            case 'opacity':
                 displayElement.textContent = `${value}%`;
                 break;
             case 'sharpness':
@@ -119,6 +136,7 @@ document.addEventListener('DOMContentLoaded', function() {
             case 'sepia':
             case 'reverbLevel':
             case 'delayLevel':
+            case 'vignette':
                 displayElement.textContent = `${value}%`;
                 break;
             case 'blur':
@@ -129,15 +147,31 @@ document.addEventListener('DOMContentLoaded', function() {
                 break;
             case 'pan':
                 if (value === 0) {
-                    displayElement.textContent = 'Center';
+                    displayElement.textContent = chrome.i18n.getMessage('center') || 'Center';
                 } else if (value < 0) {
-                    displayElement.textContent = `Left ${Math.abs(value)}%`;
+                    displayElement.textContent = `${chrome.i18n.getMessage('left') || 'Left'} ${Math.abs(value)}%`;
                 } else {
-                    displayElement.textContent = `Right ${value}%`;
+                    displayElement.textContent = `${chrome.i18n.getMessage('right') || 'Right'} ${value}%`;
                 }
                 break;
             default:
                 displayElement.textContent = value;
+        }
+        
+        // Update slider background gradient
+        const slider = document.getElementById(id);
+        if (slider) {
+            const min = parseFloat(slider.min);
+            const max = parseFloat(slider.max);
+            const percentage = ((value - min) / (max - min)) * 100;
+            slider.style.background = `linear-gradient(to right, var(--accent) 0%, var(--accent) ${percentage}%, var(--border-dark) ${percentage}%, var(--border-dark) 100%)`;
+        }
+    }
+    
+    function updateEQDisplay(id, value) {
+        const displayElement = document.getElementById(`${id}-value`);
+        if (displayElement) {
+            displayElement.textContent = `${value > 0 ? '+' : ''}${value}dB`;
         }
     }
     
@@ -151,14 +185,14 @@ document.addEventListener('DOMContentLoaded', function() {
     
     document.getElementById('extensionToggle').addEventListener('change', function() {
         currentSettings.enabled = this.checked;
-        document.getElementById('toggleStatus').textContent = this.checked ? 'Enabled' : 'Disabled';
+        document.getElementById('toggleStatus').textContent = chrome.i18n.getMessage(this.checked ? 'enabled' : 'disabled');
         
         sendSettingsToContent();
         chrome.storage.sync.set({ enabled: currentSettings.enabled });
     });
     
     const videoControls = ['brightness', 'contrast', 'saturation', 'sharpness', 'hue', 
-                         'grayscale', 'invert', 'sepia', 'blur'];
+                         'grayscale', 'invert', 'sepia', 'blur', 'opacity', 'vignette'];
     
     videoControls.forEach(control => {
         const slider = document.getElementById(control);
@@ -179,6 +213,43 @@ document.addEventListener('DOMContentLoaded', function() {
             });
         }
     });
+    
+    // Equalizer controls
+    const eqIds = ['eq-32', 'eq-64', 'eq-125', 'eq-250', 'eq-500', 'eq-1k', 'eq-2k', 'eq-4k', 'eq-8k', 'eq-16k'];
+    eqIds.forEach((id, index) => {
+        const slider = document.getElementById(id);
+        if (slider) {
+            slider.addEventListener('input', () => {
+                const value = parseFloat(slider.value);
+                updateEQDisplay(id, value);
+                
+                if (!currentSettings.audioSettings.equalizer) {
+                    currentSettings.audioSettings.equalizer = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
+                }
+                currentSettings.audioSettings.equalizer[index] = value;
+                
+                sendSettingsToContent();
+                scheduleSave();
+            });
+        }
+    });
+    
+    // EQ Reset button
+    const eqResetBtn = document.getElementById('eqResetBtn');
+    if (eqResetBtn) {
+        eqResetBtn.addEventListener('click', () => {
+            currentSettings.audioSettings.equalizer = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
+            eqIds.forEach((id, index) => {
+                const slider = document.getElementById(id);
+                if (slider) {
+                    slider.value = 0;
+                    updateEQDisplay(id, 0);
+                }
+            });
+            sendSettingsToContent();
+            scheduleSave();
+        });
+    }
     
     const audioSliders = ['volume', 'bass', 'pan', 'reverbLevel', 'delayLevel'];
     
@@ -305,72 +376,128 @@ document.addEventListener('DOMContentLoaded', function() {
                 videoSettings: {
                     brightness: 90, contrast: 120, saturation: 90,
                     sharpness: 10, hue: 0, grayscale: 0,
-                    invert: 0, sepia: 0, blur: 0
+                    invert: 0, sepia: 0, blur: 0,
+                    opacity: 100, vignette: 15, temperature: 0
                 },
                 audioSettings: {
                     volume: 100, bass: 5, pan: 0,
                     reverb: false, reverbLevel: 30,
                     delay: false, delayLevel: 30,
-                    stereoReverse: false
+                    stereoReverse: false,
+                    equalizer: [0, 0, 0, -2, -3, -2, 0, 2, 0, 0]
                 }
             },
             vintage: {
                 videoSettings: {
                     brightness: 95, contrast: 110, saturation: 85,
                     sharpness: -5, hue: 0, grayscale: 0,
-                    invert: 0, sepia: 40, blur: 1
+                    invert: 0, sepia: 40, blur: 1,
+                    opacity: 100, vignette: 25, temperature: 10
                 },
                 audioSettings: {
                     volume: 100, bass: 2, pan: 0,
                     reverb: true, reverbLevel: 25,
                     delay: false, delayLevel: 30,
-                    stereoReverse: false
+                    stereoReverse: false,
+                    equalizer: [0, 0, -3, -4, 2, 3, 0, -2, -4, -6]
                 }
             },
             night: {
                 videoSettings: {
                     brightness: 70, contrast: 90, saturation: 80,
-                    sharpness: 5, hue: 0, grayscale: 0,
-                    invert: 0, sepia: 0, blur: 0
+                    sharpness: 5, hue: -10, grayscale: 0,
+                    invert: 0, sepia: 0, blur: 0,
+                    opacity: 100, vignette: 10, temperature: -15
                 },
                 audioSettings: {
                     volume: 80, bass: -2, pan: 0,
                     reverb: false, reverbLevel: 30,
                     delay: false, delayLevel: 30,
-                    stereoReverse: false
+                    stereoReverse: false,
+                    equalizer: [0, 0, 0, 0, -3, -3, -2, 0, 0, 0]
                 }
             },
             bassBoost: {
                 videoSettings: {
                     brightness: 100, contrast: 100, saturation: 100,
                     sharpness: 0, hue: 0, grayscale: 0,
-                    invert: 0, sepia: 0, blur: 0
+                    invert: 0, sepia: 0, blur: 0,
+                    opacity: 100, vignette: 0, temperature: 0
                 },
                 audioSettings: {
                     volume: 100, bass: 12, pan: 0,
                     reverb: false, reverbLevel: 30,
                     delay: false, delayLevel: 30,
-                    stereoReverse: false
+                    stereoReverse: false,
+                    equalizer: [10, 8, 6, 4, 2, 0, 0, 0, 0, 0]
                 }
             },
             voiceClarity: {
                 videoSettings: {
                     brightness: 100, contrast: 100, saturation: 100,
                     sharpness: 5, hue: 0, grayscale: 0,
-                    invert: 0, sepia: 0, blur: 0
+                    invert: 0, sepia: 0, blur: 0,
+                    opacity: 100, vignette: 0, temperature: 0
                 },
                 audioSettings: {
                     volume: 100, bass: -5, pan: 0,
                     reverb: false, reverbLevel: 30,
                     delay: false, delayLevel: 30,
-                    stereoReverse: false
+                    stereoReverse: false,
+                    equalizer: [-4, -4, -2, 0, 4, 6, 4, 0, -2, -3]
+                }
+            },
+            warm: {
+                videoSettings: {
+                    brightness: 105, contrast: 105, saturation: 110,
+                    sharpness: 0, hue: 10, grayscale: 0,
+                    invert: 0, sepia: 15, blur: 0,
+                    opacity: 100, vignette: 5, temperature: 20
+                },
+                audioSettings: {
+                    volume: 100, bass: 3, pan: 0,
+                    reverb: false, reverbLevel: 30,
+                    delay: false, delayLevel: 30,
+                    stereoReverse: false,
+                    equalizer: [2, 2, 1, 0, 0, 0, -1, -2, -2, -2]
+                }
+            },
+            cool: {
+                videoSettings: {
+                    brightness: 100, contrast: 105, saturation: 95,
+                    sharpness: 5, hue: -15, grayscale: 0,
+                    invert: 0, sepia: 0, blur: 0,
+                    opacity: 100, vignette: 0, temperature: -20
+                },
+                audioSettings: {
+                    volume: 100, bass: 0, pan: 0,
+                    reverb: false, reverbLevel: 30,
+                    delay: false, delayLevel: 30,
+                    stereoReverse: false,
+                    equalizer: [0, 0, 0, 0, 0, 2, 3, 3, 2, 2]
+                }
+            },
+            highContrast: {
+                videoSettings: {
+                    brightness: 100, contrast: 150, saturation: 120,
+                    sharpness: 15, hue: 0, grayscale: 0,
+                    invert: 0, sepia: 0, blur: 0,
+                    opacity: 100, vignette: 20, temperature: 0
+                },
+                audioSettings: {
+                    volume: 100, bass: 0, pan: 0,
+                    reverb: false, reverbLevel: 30,
+                    delay: false, delayLevel: 30,
+                    stereoReverse: false,
+                    equalizer: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
                 }
             }
         };
     }
     
     function savePreset() {
-        const presetName = prompt("Enter a name for your preset:");
+        const promptMsg = chrome.i18n.getMessage('enterPresetName') || "Enter a name for your preset:";
+        const presetName = prompt(promptMsg);
         if (!presetName) return;
         
         chrome.storage.sync.get(['customPresets'], (data) => {
@@ -384,7 +511,8 @@ document.addEventListener('DOMContentLoaded', function() {
                 updatePresetDropdown();
                 document.getElementById('presetSelect').value = presetName;
                 updatePresetDescription(presetName);
-                alert(`Preset "${presetName}" saved successfully!`);
+                const savedMsg = chrome.i18n.getMessage('presetSaved', [presetName]) || `Preset "${presetName}" saved successfully!`;
+                alert(savedMsg);
             });
         });
     }
@@ -393,13 +521,15 @@ document.addEventListener('DOMContentLoaded', function() {
         const presetSelect = document.getElementById('presetSelect');
         const presetName = presetSelect.value;
         
-        const builtInPresets = ['default', 'cinematic', 'vintage', 'night', 'bassBoost', 'voiceClarity'];
+        const builtInPresets = ['default', 'cinematic', 'vintage', 'night', 'bassBoost', 'voiceClarity', 'warm', 'cool', 'highContrast'];
         if (builtInPresets.includes(presetName)) {
-            alert("Cannot delete built-in presets!");
+            const cannotDeleteMsg = chrome.i18n.getMessage('cannotDeleteBuiltIn') || "Cannot delete built-in presets!";
+            alert(cannotDeleteMsg);
             return;
         }
         
-        if (!confirm(`Are you sure you want to delete the "${presetName}" preset?`)) {
+        const confirmMsg = chrome.i18n.getMessage('confirmDelete', [presetName]) || `Are you sure you want to delete the "${presetName}" preset?`;
+        if (!confirm(confirmMsg)) {
             return;
         }
         
@@ -415,7 +545,8 @@ document.addEventListener('DOMContentLoaded', function() {
                     updatePresetDescription('default');
                 });
             } else {
-                alert("Preset not found!");
+                const notFoundMsg = chrome.i18n.getMessage('presetNotFound') || "Preset not found!";
+                alert(notFoundMsg);
             }
         });
     }
@@ -446,15 +577,18 @@ document.addEventListener('DOMContentLoaded', function() {
     
     function updatePresetDescription(presetName) {
         const descriptions = {
-            default: "Reset all settings to default values.",
-            cinematic: "Enhances contrast and color for a movie-like experience with slightly boosted bass.",
-            vintage: "Gives a warm, old-school look with subtle sepia tone and slight blur, audio has a vintage radio effect.",
-            night: "Reduces brightness and blue light for comfortable night viewing, with softer audio.",
-            bassBoost: "Significantly boosts bass frequencies for powerful low-end response.",
-            voiceClarity: "Enhances vocal frequencies and reduces bass for clearer dialogue."
+            default: chrome.i18n.getMessage('presetDescriptionDefault'),
+            cinematic: chrome.i18n.getMessage('presetDescriptionCinematic'),
+            vintage: chrome.i18n.getMessage('presetDescriptionVintage'),
+            night: chrome.i18n.getMessage('presetDescriptionNight'),
+            bassBoost: chrome.i18n.getMessage('presetDescriptionBassBoost'),
+            voiceClarity: chrome.i18n.getMessage('presetDescriptionVoiceClarity'),
+            warm: "Adds warm, cozy tones with enhanced low frequencies. Perfect for relaxed viewing.",
+            cool: "Creates cool, crisp tones with enhanced high frequencies. Ideal for modern content.",
+            highContrast: "Dramatically enhances contrast and sharpness for maximum visual impact."
         };
         
-        const customDescription = "Custom preset. No description available.";
+        const customDescription = chrome.i18n.getMessage('presetDescriptionCustom');
         document.getElementById('presetDescription').textContent = 
             descriptions[presetName] || customDescription;
     }
@@ -488,13 +622,16 @@ document.addEventListener('DOMContentLoaded', function() {
                     chrome.storage.sync.set(settings, () => {
                         loadSettings();
                         updatePresetDropdown();
-                        alert('Settings imported successfully!');
+                        const successMsg = chrome.i18n.getMessage('settingsImported') || 'Settings imported successfully!';
+                        alert(successMsg);
                     });
                 } else {
-                    alert('Invalid settings file format!');
+                    const invalidMsg = chrome.i18n.getMessage('invalidFileFormat') || 'Invalid settings file format!';
+                    alert(invalidMsg);
                 }
             } catch (err) {
-                alert('Error parsing settings file: ' + err.message);
+                const errorMsg = chrome.i18n.getMessage('errorParsingFile', [err.message]) || `Error parsing settings file: ${err.message}`;
+                alert(errorMsg);
             }
         };
         reader.readAsText(file);
@@ -503,7 +640,8 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     
     function resetSettings() {
-        if (!confirm("Are you sure you want to reset all settings to default?")) {
+        const confirmMsg = chrome.i18n.getMessage('confirmReset') || "Are you sure you want to reset all settings to default?";
+        if (!confirm(confirmMsg)) {
             return;
         }
         
@@ -511,13 +649,15 @@ document.addEventListener('DOMContentLoaded', function() {
             videoSettings: {
                 brightness: 100, contrast: 100, saturation: 100,
                 sharpness: 0, hue: 0, grayscale: 0,
-                invert: 0, sepia: 0, blur: 0
+                invert: 0, sepia: 0, blur: 0,
+                opacity: 100, vignette: 0, temperature: 0
             },
             audioSettings: {
                 volume: 100, bass: 0, pan: 0,
                 reverb: false, reverbLevel: 30,
                 delay: false, delayLevel: 30,
-                stereoReverse: false
+                stereoReverse: false,
+                equalizer: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
             },
             enabled: true
         };

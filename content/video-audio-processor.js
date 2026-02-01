@@ -5,21 +5,17 @@
         videoSettings: {
             brightness: 100, contrast: 100, saturation: 100,
             sharpness: 0, hue: 0, grayscale: 0,
-            invert: 0, sepia: 0, blur: 0
+            invert: 0, sepia: 0, blur: 0,
+            opacity: 100, vignette: 0, temperature: 0
         },
         audioSettings: {
             volume: 100, bass: 0, pan: 0,
             reverb: false, reverbLevel: 30,
             delay: false, delayLevel: 30,
-            stereoReverse: false
+            stereoReverse: false,
+            equalizer: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0] // 10-band EQ
         }
     };
-
-    // Audio processing buffers
-    const delayBuffer = { left: [], right: [] };
-    const delayBufferSize = 44100 * 2;
-    let delayWritePointer = 0;
-    let lastReverbSamples = [];
 
     function processMediaElement(element) {
         if (!activeSettings.enabled) {
@@ -33,6 +29,7 @@
 
         if (element.audioContext || needsAudioProcessing(element)) {
             setupAudioContext(element);
+            updateAudioNodes(element, activeSettings.audioSettings);
         }
     }
 
@@ -40,7 +37,38 @@
         const audio = activeSettings.audioSettings;
         return (element instanceof HTMLAudioElement || element instanceof HTMLVideoElement) &&
                (audio.volume !== 100 || audio.bass !== 0 || audio.pan !== 0 ||
-                audio.stereoReverse || audio.reverb || audio.delay);
+                audio.stereoReverse || audio.reverb || audio.delay || 
+                (audio.equalizer && audio.equalizer.some(gain => gain !== 0)));
+    }
+    
+    function updateAudioNodes(element, audioSettings) {
+        if (!element.audioContext) return;
+        
+        // Update gain (volume)
+        if (element.gainNode) {
+            element.gainNode.gain.value = audioSettings.volume / 100;
+        }
+        
+        // Update bass
+        if (element.bassNode) {
+            const bassGain = audioSettings.bass || 0;
+            element.bassNode.gain.value = bassGain;
+        }
+        
+        // Update stereo pan
+        if (element.panNode) {
+            const panValue = (audioSettings.pan || 0) / 100;
+            element.panNode.pan.value = Math.max(-1, Math.min(1, panValue));
+        }
+        
+        // Update equalizer
+        if (element.eqBands && audioSettings.equalizer) {
+            element.eqBands.forEach((band, index) => {
+                if (audioSettings.equalizer[index] !== undefined) {
+                    band.gain.value = audioSettings.equalizer[index];
+                }
+            });
+        }
     }
 
     function setupAudioContext(element) {
@@ -50,109 +78,57 @@
             const AudioContext = window.AudioContext || window.webkitAudioContext;
             const audioContext = new AudioContext();
             const source = audioContext.createMediaElementSource(element);
-            const processor = audioContext.createScriptProcessor(8192, 2, 2);
+            
+            // Create nodes for better audio quality
+            const gainNode = audioContext.createGain();
+            const bassNode = audioContext.createBiquadFilter();
+            const panNode = audioContext.createStereoPanner();
+            
+            // Configure bass filter
+            bassNode.type = 'lowshelf';
+            bassNode.frequency.value = 200;
+            
+            // Create equalizer nodes (10-band)
+            const eqBands = [];
+            const frequencies = [32, 64, 125, 250, 500, 1000, 2000, 4000, 8000, 16000];
+            frequencies.forEach(freq => {
+                const filter = audioContext.createBiquadFilter();
+                filter.type = 'peaking';
+                filter.frequency.value = freq;
+                filter.Q.value = 1.0;
+                filter.gain.value = 0;
+                eqBands.push(filter);
+            });
 
+            // Store nodes in element
             element.audioContext = audioContext;
             element.audioSource = source;
-            element.audioProcessor = processor;
-
-            source.connect(processor);
-            processor.connect(audioContext.destination);
-
-            processor.onaudioprocess = (e) => processAudio(e, activeSettings.audioSettings);
+            element.gainNode = gainNode;
+            element.bassNode = bassNode;
+            element.panNode = panNode;
+            element.eqBands = eqBands;
+            
+            // Connect nodes
+            source.connect(gainNode);
+            gainNode.connect(bassNode);
+            bassNode.connect(panNode);
+            
+            // Connect equalizer bands in series
+            let lastNode = panNode;
+            eqBands.forEach(band => {
+                lastNode.connect(band);
+                lastNode = band;
+            });
+            
+            lastNode.connect(audioContext.destination);
+            
+            // Apply current settings
+            updateAudioNodes(element, activeSettings.audioSettings);
         } catch (e) {
             console.error("Video & Audio Manager: Error creating audio context", e);
         }
     }
-
-    function processAudio(e, audioSettings) {
-        if (!audioSettings || !activeSettings.enabled) return;
-
-        const inputBuffer = e.inputBuffer;
-        const outputBuffer = e.outputBuffer;
-        const volume = audioSettings.volume / 100;
-        const bassBoost = 1 + (audioSettings.bass / 20);
-
-        for (let channel = 0; channel < outputBuffer.numberOfChannels; channel++) {
-            const outputData = outputBuffer.getChannelData(channel);
-            
-            // Determine source channel (swap if stereo reverse is enabled)
-            let sourceChannel = channel;
-            if (audioSettings.stereoReverse && outputBuffer.numberOfChannels === 2) {
-                sourceChannel = 1 - channel; // Swap left and right channels
-            }
-            
-            const sourceData = inputBuffer.getChannelData(sourceChannel);
-
-            // Apply panning
-            let panValue = 1;
-            if (outputBuffer.numberOfChannels === 2) {
-                panValue = audioSettings.pan / 100;
-                if (channel === 0) { // Left channel
-                    panValue = Math.max(0, 1 - Math.abs(panValue));
-                } else { // Right channel
-                    panValue = Math.max(0, 1 + panValue);
-                }
-            }
-
-            // Process each sample
-            for (let i = 0; i < sourceData.length; i++) {
-                let sample = sourceData[i] * volume * panValue;
-
-                // Apply bass boost
-                if (i > 0 && audioSettings.bass !== 0) {
-                    sample = (sample * 0.7) + (outputData[i-1] * 0.3 * bassBoost);
-                }
-
-                // Apply delay effect
-                if (audioSettings.delay) {
-                    const delaySample = getDelayedSample(channel, i, audioSettings.delayLevel);
-                    sample = sample * 0.7 + delaySample * 0.3;
-                }
-
-                // Apply reverb effect
-                if (audioSettings.reverb) {
-                    if (!lastReverbSamples[channel]) lastReverbSamples[channel] = [];
-                    const reverbAmount = audioSettings.reverbLevel / 100;
-                    
-                    if (i > 0) {
-                        sample = sample * 0.6 + lastReverbSamples[channel][i-1] * 0.4 * reverbAmount;
-                    }
-                    if (i > 100) {
-                        sample = sample * 0.8 + lastReverbSamples[channel][i-100] * 0.2 * reverbAmount;
-                    }
-                    
-                    lastReverbSamples[channel][i] = sample;
-                }
-
-                outputData[i] = Math.max(-1, Math.min(1, sample));
-            }
-
-            // Store for delay effect
-            if (audioSettings.delay) {
-                storeForDelay(channel, outputData);
-            }
-        }
-    }
-
-    function storeForDelay(channel, data) {
-        const channelName = channel === 0 ? 'left' : 'right';
-        if (!delayBuffer[channelName]) delayBuffer[channelName] = new Array(delayBufferSize).fill(0);
-        
-        for (let i = 0; i < data.length; i++) {
-            delayBuffer[channelName][(delayWritePointer + i) % delayBufferSize] = data[i];
-        }
-    }
-
-    function getDelayedSample(channel, index, delayLevel) {
-        const channelName = channel === 0 ? 'left' : 'right';
-        if (!delayBuffer[channelName]) return 0;
-        
-        const delaySamples = Math.floor(delayLevel * 44100 / 1000);
-        const readPos = (delayWritePointer + index - delaySamples + delayBufferSize) % delayBufferSize;
-        return delayBuffer[channelName][readPos] || 0;
-    }
-
+    
     function applyVideoEffects(element, videoSettings) {
         const filters = [];
         
@@ -164,24 +140,44 @@
         if (videoSettings.sepia > 0) filters.push(`sepia(${videoSettings.sepia}%)`);
         if (videoSettings.invert > 0) filters.push(`invert(${videoSettings.invert}%)`);
         if (videoSettings.blur > 0) filters.push(`blur(${videoSettings.blur}px)`);
+        if (videoSettings.opacity !== undefined && videoSettings.opacity !== 100) {
+            filters.push(`opacity(${videoSettings.opacity}%)`);
+        }
         
         element.style.filter = filters.join(' ');
         element.style.willChange = 'filter';
+        
+        // Apply additional effects via box-shadow for vignette
+        if (videoSettings.vignette > 0) {
+            const vignetteStrength = videoSettings.vignette / 100;
+            element.style.boxShadow = `inset 0 0 ${100 * vignetteStrength}px ${50 * vignetteStrength}px rgba(0,0,0,${0.7 * vignetteStrength})`;
+        } else {
+            element.style.boxShadow = '';
+        }
     }
 
     function resetElement(element) {
         element.style.filter = '';
         element.style.willChange = '';
+        element.style.boxShadow = '';
         
         if (element.audioContext) {
             try {
-                element.audioSource.disconnect(element.audioProcessor);
-                element.audioProcessor.disconnect(element.audioContext.destination);
+                element.audioSource.disconnect();
+                if (element.gainNode) element.gainNode.disconnect();
+                if (element.bassNode) element.bassNode.disconnect();
+                if (element.panNode) element.panNode.disconnect();
+                if (element.eqBands) {
+                    element.eqBands.forEach(band => band.disconnect());
+                }
                 element.audioContext.close();
                 
                 delete element.audioContext;
                 delete element.audioSource;
-                delete element.audioProcessor;
+                delete element.gainNode;
+                delete element.bassNode;
+                delete element.panNode;
+                delete element.eqBands;
             } catch (e) {
                 console.error("Error resetting audio context:", e);
             }
@@ -234,8 +230,4 @@
         type: 'FROM_PAGE',
         action: 'ready'
     }, '*');
-
-    setInterval(() => {
-        delayWritePointer = (delayWritePointer + 44100) % delayBufferSize;
-    }, 1000);
 })();

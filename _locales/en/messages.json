@@ -1,0 +1,262 @@
+{
+  "extensionName": {
+    "message": "Video & Audio Manager",
+    "description": "Advanced real-time video and audio processing for any website with equalizer, effects and presets"
+  },
+  "extensionDescription": {
+    "message": "Advanced real-time video and audio processing for any website with equalizer, effects and presets",
+    "description": "Advanced real-time video and audio processing for any website with equalizer, effects and presets"
+  },
+  "enabled": {
+    "message": "Enabled"
+  },
+  "disabled": {
+    "message": "Disabled"
+  },
+  "videoTab": {
+    "message": "Video"
+  },
+  "audioTab": {
+    "message": "Audio"
+  },
+  "presetsTab": {
+    "message": "Presets"
+  },
+  "equalizerTab": {
+    "message": "Equalizer"
+  },
+  "donateTab": {
+    "message": "Donate"
+  },
+  "brightness": {
+    "message": "Brightness"
+  },
+  "contrast": {
+    "message": "Contrast"
+  },
+  "saturation": {
+    "message": "Saturation"
+  },
+  "sharpness": {
+    "message": "Sharpness"
+  },
+  "hue": {
+    "message": "Hue"
+  },
+  "grayscale": {
+    "message": "Grayscale"
+  },
+  "invertColors": {
+    "message": "Invert Colors"
+  },
+  "sepia": {
+    "message": "Sepia"
+  },
+  "blur": {
+    "message": "Blur"
+  },
+  "opacity": {
+    "message": "Opacity"
+  },
+  "vignette": {
+    "message": "Vignette"
+  },
+  "temperature": {
+    "message": "Temperature"
+  },
+  "volumeBoost": {
+    "message": "Volume Boost"
+  },
+  "bass": {
+    "message": "Bass"
+  },
+  "stereoPan": {
+    "message": "Stereo Pan"
+  },
+  "reverseStereo": {
+    "message": "Reverse Stereo"
+  },
+  "enableReverb": {
+    "message": "Enable Reverb"
+  },
+  "reverbLevel": {
+    "message": "Reverb Level"
+  },
+  "enableDelay": {
+    "message": "Enable Delay"
+  },
+  "delayLevel": {
+    "message": "Delay Level"
+  },
+  "applyPreset": {
+    "message": "Apply"
+  },
+  "savePreset": {
+    "message": "Save Current"
+  },
+  "deletePreset": {
+    "message": "Delete"
+  },
+  "exportSettings": {
+    "message": "Export Settings"
+  },
+  "importSettings": {
+    "message": "Import Settings"
+  },
+  "resetAll": {
+    "message": "Reset All"
+  },
+  "advancedSettings": {
+    "message": "Advanced Settings"
+  },
+  "presetDefault": {
+    "message": "Default"
+  },
+  "presetCinematic": {
+    "message": "Cinematic"
+  },
+  "presetVintage": {
+    "message": "Vintage"
+  },
+  "presetNight": {
+    "message": "Night Mode"
+  },
+  "presetBassBoost": {
+    "message": "Bass Boost"
+  },
+  "presetVoiceClarity": {
+    "message": "Voice Clarity"
+  },
+  "presetWarm": {
+    "message": "Warm Tones"
+  },
+  "presetCool": {
+    "message": "Cool Tones"
+  },
+  "presetHighContrast": {
+    "message": "High Contrast"
+  },
+  "presetDescriptionDefault": {
+    "message": "Reset all settings to default values."
+  },
+  "presetDescriptionCinematic": {
+    "message": "Enhances contrast and color for a movie-like experience with slightly boosted bass."
+  },
+  "presetDescriptionVintage": {
+    "message": "Gives a warm, old-school look with subtle sepia tone and slight blur, audio has a vintage radio effect."
+  },
+  "presetDescriptionNight": {
+    "message": "Reduces brightness and blue light for comfortable night viewing, with softer audio."
+  },
+  "presetDescriptionBassBoost": {
+    "message": "Significantly boosts bass frequencies for powerful low-end response."
+  },
+  "presetDescriptionVoiceClarity": {
+    "message": "Enhances vocal frequencies and reduces bass for clearer dialogue."
+  },
+  "presetDescriptionCustom": {
+    "message": "Custom preset. No description available."
+  },
+  "supportDeveloper": {
+    "message": "Support the Developer"
+  },
+  "donateMessage": {
+    "message": "If you enjoy using Video & Audio Manager, consider supporting further development:"
+  },
+  "buyMeCoffee": {
+    "message": "Buy Me a Coffee"
+  },
+  "donateViaCoffee": {
+    "message": "Donate via Buy Me a Coffee"
+  },
+  "developedBy": {
+    "message": "Developed by Aristarh Ucolov"
+  },
+  "version": {
+    "message": "Version"
+  },
+  "tooltipBrightness": {
+    "message": "Adjusts the overall lightness/darkness of the video"
+  },
+  "tooltipContrast": {
+    "message": "Controls the difference between light and dark areas"
+  },
+  "tooltipSaturation": {
+    "message": "Changes the intensity of colors"
+  },
+  "tooltipSharpness": {
+    "message": "Adjusts edge definition (positive) or softens image (negative)"
+  },
+  "tooltipHue": {
+    "message": "Rotates all colors by the specified angle"
+  },
+  "tooltipGrayscale": {
+    "message": "Converts the image to grayscale at the specified percentage"
+  },
+  "tooltipInvert": {
+    "message": "Inverts the colors of the video"
+  },
+  "tooltipSepia": {
+    "message": "Applies a vintage sepia tone effect"
+  },
+  "tooltipBlur": {
+    "message": "Adds Gaussian blur to the video"
+  },
+  "tooltipVolume": {
+    "message": "Adjusts the overall volume level"
+  },
+  "tooltipBass": {
+    "message": "Boosts or reduces low frequencies"
+  },
+  "tooltipPan": {
+    "message": "Controls stereo balance (left/right)"
+  },
+  "tooltipStereoReverse": {
+    "message": "Swaps left and right audio channels"
+  },
+  "tooltipReverb": {
+    "message": "Adds ambient room simulation effect"
+  },
+  "tooltipDelay": {
+    "message": "Adds echo/delay effect to the audio"
+  },
+  "confirmReset": {
+    "message": "Are you sure you want to reset all settings to default?"
+  },
+  "confirmDelete": {
+    "message": "Are you sure you want to delete the \"{0}\" preset?"
+  },
+  "cannotDeleteBuiltIn": {
+    "message": "Cannot delete built-in presets!"
+  },
+  "presetSaved": {
+    "message": "Preset \"{0}\" saved successfully!"
+  },
+  "presetNotFound": {
+    "message": "Preset not found!"
+  },
+  "settingsImported": {
+    "message": "Settings imported successfully!"
+  },
+  "invalidFileFormat": {
+    "message": "Invalid settings file format!"
+  },
+  "errorParsingFile": {
+    "message": "Error parsing settings file: {0}"
+  },
+  "enterPresetName": {
+    "message": "Enter a name for your preset:"
+  },
+  "selectPresetMessage": {
+    "message": "Select a preset to see its description here."
+  },
+  "center": {
+    "message": "Center"
+  },
+  "left": {
+    "message": "Left"
+  },
+  "right": {
+    "message": "Right"
+  }
+}

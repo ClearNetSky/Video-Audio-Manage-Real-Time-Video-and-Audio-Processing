@@ -5,13 +5,15 @@ chrome.runtime.onInstalled.addListener(() => {
       videoSettings: {
         brightness: 100, contrast: 100, saturation: 100,
         sharpness: 0, hue: 0, grayscale: 0,
-        invert: 0, sepia: 0, blur: 0
+        invert: 0, sepia: 0, blur: 0,
+        opacity: 100, vignette: 0, temperature: 0
       },
       audioSettings: {
         volume: 100, bass: 0, pan: 0,
         reverb: false, reverbLevel: 30,
         delay: false, delayLevel: 30,
-        stereoReverse: false
+        stereoReverse: false,
+        equalizer: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
       },
       enabled: true,
       lastPreset: 'default',
@@ -22,7 +24,8 @@ chrome.runtime.onInstalled.addListener(() => {
       resetShortcut: 'Ctrl+Shift+R',
       reverbQuality: 'medium',
       uiTheme: 'dark',
-      showTooltips: true
+      showTooltips: true,
+      language: chrome.i18n.getUILanguage()
     };
 
     if (!settings.videoSettings || !settings.audioSettings) {

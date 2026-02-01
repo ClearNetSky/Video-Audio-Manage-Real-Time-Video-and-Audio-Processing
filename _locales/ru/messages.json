@@ -1,0 +1,262 @@
+{
+  "extensionName": {
+    "message": "Видео и Аудио Менеджер",
+    "description": "Продвинутая обработка видео и аудио в реальном времени для любого сайта с эквалайзером, эффектами и пресетами"
+  },
+  "extensionDescription": {
+    "message": "Продвинутая обработка видео и аудио в реальном времени для любого сайта с эквалайзером, эффектами и пресетами",
+    "description": "Продвинутая обработка видео и аудио в реальном времени для любого сайта с эквалайзером, эффектами и пресетами"
+  },
+  "enabled": {
+    "message": "Включено"
+  },
+  "disabled": {
+    "message": "Выключено"
+  },
+  "videoTab": {
+    "message": "Видео"
+  },
+  "audioTab": {
+    "message": "Аудио"
+  },
+  "presetsTab": {
+    "message": "Пресеты"
+  },
+  "equalizerTab": {
+    "message": "Эквалайзер"
+  },
+  "donateTab": {
+    "message": "Поддержать"
+  },
+  "brightness": {
+    "message": "Яркость"
+  },
+  "contrast": {
+    "message": "Контраст"
+  },
+  "saturation": {
+    "message": "Насыщенность"
+  },
+  "sharpness": {
+    "message": "Резкость"
+  },
+  "hue": {
+    "message": "Оттенок"
+  },
+  "grayscale": {
+    "message": "Ч/Б"
+  },
+  "invertColors": {
+    "message": "Инверсия цвета"
+  },
+  "sepia": {
+    "message": "Сепия"
+  },
+  "blur": {
+    "message": "Размытие"
+  },
+  "opacity": {
+    "message": "Прозрачность"
+  },
+  "vignette": {
+    "message": "Виньетка"
+  },
+  "temperature": {
+    "message": "Температура"
+  },
+  "volumeBoost": {
+    "message": "Усиление громкости"
+  },
+  "bass": {
+    "message": "Бас"
+  },
+  "stereoPan": {
+    "message": "Панорама"
+  },
+  "reverseStereo": {
+    "message": "Реверс стерео"
+  },
+  "enableReverb": {
+    "message": "Включить реверберацию"
+  },
+  "reverbLevel": {
+    "message": "Уровень реверберации"
+  },
+  "enableDelay": {
+    "message": "Включить задержку"
+  },
+  "delayLevel": {
+    "message": "Уровень задержки"
+  },
+  "applyPreset": {
+    "message": "Применить"
+  },
+  "savePreset": {
+    "message": "Сохранить"
+  },
+  "deletePreset": {
+    "message": "Удалить"
+  },
+  "exportSettings": {
+    "message": "Экспорт настроек"
+  },
+  "importSettings": {
+    "message": "Импорт настроек"
+  },
+  "resetAll": {
+    "message": "Сбросить всё"
+  },
+  "advancedSettings": {
+    "message": "Расширенные настройки"
+  },
+  "presetDefault": {
+    "message": "По умолчанию"
+  },
+  "presetCinematic": {
+    "message": "Кинематограф"
+  },
+  "presetVintage": {
+    "message": "Винтаж"
+  },
+  "presetNight": {
+    "message": "Ночной режим"
+  },
+  "presetBassBoost": {
+    "message": "Усиление баса"
+  },
+  "presetVoiceClarity": {
+    "message": "Чёткость речи"
+  },
+  "presetWarm": {
+    "message": "Тёплые тона"
+  },
+  "presetCool": {
+    "message": "Холодные тона"
+  },
+  "presetHighContrast": {
+    "message": "Высокий контраст"
+  },
+  "presetDescriptionDefault": {
+    "message": "Сброс всех настроек к значениям по умолчанию."
+  },
+  "presetDescriptionCinematic": {
+    "message": "Усиливает контраст и цвет для кинематографического эффекта с небольшим усилением баса."
+  },
+  "presetDescriptionVintage": {
+    "message": "Придаёт тёплый винтажный вид с лёгким эффектом сепии и размытием, аудио имеет эффект старого радио."
+  },
+  "presetDescriptionNight": {
+    "message": "Снижает яркость и синий свет для комфортного ночного просмотра с мягким звуком."
+  },
+  "presetDescriptionBassBoost": {
+    "message": "Значительно усиливает низкие частоты для мощного баса."
+  },
+  "presetDescriptionVoiceClarity": {
+    "message": "Усиливает речевые частоты и снижает бас для более чёткой передачи диалогов."
+  },
+  "presetDescriptionCustom": {
+    "message": "Пользовательский пресет. Описание отсутствует."
+  },
+  "supportDeveloper": {
+    "message": "Поддержать разработчика"
+  },
+  "donateMessage": {
+    "message": "Если вам нравится Видео и Аудио Менеджер, поддержите дальнейшую разработку:"
+  },
+  "buyMeCoffee": {
+    "message": "Купить мне кофе"
+  },
+  "donateViaCoffee": {
+    "message": "Пожертвовать через Buy Me a Coffee"
+  },
+  "developedBy": {
+    "message": "Разработано Аристархом Уколовым"
+  },
+  "version": {
+    "message": "Версия"
+  },
+  "tooltipBrightness": {
+    "message": "Регулирует общую яркость/темноту видео"
+  },
+  "tooltipContrast": {
+    "message": "Управляет разницей между светлыми и тёмными областями"
+  },
+  "tooltipSaturation": {
+    "message": "Изменяет интенсивность цветов"
+  },
+  "tooltipSharpness": {
+    "message": "Усиливает чёткость краёв (положительные значения) или смягчает изображение (отрицательные)"
+  },
+  "tooltipHue": {
+    "message": "Поворачивает все цвета на указанный угол"
+  },
+  "tooltipGrayscale": {
+    "message": "Преобразует изображение в чёрно-белое на указанный процент"
+  },
+  "tooltipInvert": {
+    "message": "Инвертирует цвета видео"
+  },
+  "tooltipSepia": {
+    "message": "Применяет винтажный эффект сепии"
+  },
+  "tooltipBlur": {
+    "message": "Добавляет размытие по Гауссу к видео"
+  },
+  "tooltipVolume": {
+    "message": "Регулирует общий уровень громкости"
+  },
+  "tooltipBass": {
+    "message": "Усиливает или уменьшает низкие частоты"
+  },
+  "tooltipPan": {
+    "message": "Управляет стерео балансом (лево/право)"
+  },
+  "tooltipStereoReverse": {
+    "message": "Меняет местами левый и правый аудиоканалы"
+  },
+  "tooltipReverb": {
+    "message": "Добавляет эффект помещения/реверберации"
+  },
+  "tooltipDelay": {
+    "message": "Добавляет эффект эхо/задержки к аудио"
+  },
+  "confirmReset": {
+    "message": "Вы уверены, что хотите сбросить все настройки к значениям по умолчанию?"
+  },
+  "confirmDelete": {
+    "message": "Вы уверены, что хотите удалить пресет \"{0}\"?"
+  },
+  "cannotDeleteBuiltIn": {
+    "message": "Невозможно удалить встроенные пресеты!"
+  },
+  "presetSaved": {
+    "message": "Пресет \"{0}\" успешно сохранён!"
+  },
+  "presetNotFound": {
+    "message": "Пресет не найден!"
+  },
+  "settingsImported": {
+    "message": "Настройки успешно импортированы!"
+  },
+  "invalidFileFormat": {
+    "message": "Неверный формат файла настроек!"
+  },
+  "errorParsingFile": {
+    "message": "Ошибка чтения файла настроек: {0}"
+  },
+  "enterPresetName": {
+    "message": "Введите название пресета:"
+  },
+  "selectPresetMessage": {
+    "message": "Выберите пресет, чтобы увидеть его описание."
+  },
+  "center": {
+    "message": "Центр"
+  },
+  "left": {
+    "message": "Левый"
+  },
+  "right": {
+    "message": "Правый"
+  }
+}
