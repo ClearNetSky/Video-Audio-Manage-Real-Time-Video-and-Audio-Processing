@@ -146,8 +146,8 @@ v2.0.0/
 
 ### 📞 Support
 
-- 🐛 Report bugs: [GitHub Issues](https://github.com/AristarhUcolov/Video-Audio-Manage-Real-Time-Video-and-Audio-Processing/issues)
-- 💬 Discussions: [GitHub Discussions](https://github.com/AristarhUcolov/Video-Audio-Manage-Real-Time-Video-and-Audio-Processing/discussions)
+- 🐛 Report bugs: [GitHub Issues](https://github.com/ClearNetSky/Video-Audio-Manage-Real-Time-Video-and-Audio-Processing/issues)
+- 💬 Discussions: [GitHub Discussions](https://github.com/ClearNetSky/Video-Audio-Manage-Real-Time-Video-and-Audio-Processing/discussions)
 - ☕ Support: [Buy Me a Coffee](https://www.buymeacoffee.com/aristarh.ucolov)
 
 ---

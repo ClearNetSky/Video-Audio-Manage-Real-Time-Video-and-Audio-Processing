@@ -9,7 +9,7 @@
 ## English
 
 [![Chrome Web Store Version](https://img.shields.io/chrome-web-store/v/efkidfgpglnlabaphedbiglpdaigfkpj?color=blue)](https://chrome.google.com/webstore/detail/video-audio-manager/efkidfgpglnlabaphedbiglpdaigfkpj)
-[![GitHub license](https://img.shields.io/badge/license-GPL--3.0-blue)](https://github.com/AristarhUcolov/Video-Audio-Manage-Real-Time-Video-and-Audio-Processing/blob/main/LICENSE)
+[![GitHub license](https://img.shields.io/badge/license-GPL--3.0-blue)](https://github.com/ClearNetSky/Video-Audio-Manage-Real-Time-Video-and-Audio-Processing/blob/main/LICENSE)
 ![Manifest Version](https://img.shields.io/badge/manifest-v3-important)
 ![Version](https://img.shields.io/badge/version-2.0.0-brightgreen)
 
