@@ -1,16 +1,16 @@
 {
   "manifest_version": 3,
   "name": "__MSG_extensionName__",
-  "version": "2.0.0",
+  "version": "2.2.0",
   "description": "__MSG_extensionDescription__",
   "default_locale": "en",
   "author": "Aristarh Ucolov",
-  
+
   "icons": {
     "48": "icons/icon.png",
     "128": "icons/icon.png"
   },
-  
+
   "action": {
     "default_icon": {
       "48": "icons/icon.png",
@@ -19,29 +19,42 @@
     "default_popup": "popup/popup.html",
     "default_title": "Video & Audio Manager"
   },
-  
+
   "options_ui": {
     "page": "options/options.html",
     "open_in_tab": true
   },
-  
+
   "background": {
     "service_worker": "background.js"
   },
-  
+
   "content_scripts": [
     {
       "matches": ["<all_urls>"],
       "js": ["content/content.js"],
-      "run_at": "document_idle"
+      "run_at": "document_idle",
+      "all_frames": true,
+      "match_about_blank": true
     }
   ],
-  
+
+  "commands": {
+    "toggle-extension": {
+      "suggested_key": { "default": "Alt+Shift+V" },
+      "description": "__MSG_cmdToggle__"
+    },
+    "reset-settings": {
+      "suggested_key": { "default": "Alt+Shift+R" },
+      "description": "__MSG_cmdReset__"
+    }
+  },
+
   "permissions": [
     "storage",
     "activeTab"
   ],
-  
+
   "web_accessible_resources": [{
     "resources": ["content/video-audio-processor.js", "shared/i18n.js"],
     "matches": ["<all_urls>"]

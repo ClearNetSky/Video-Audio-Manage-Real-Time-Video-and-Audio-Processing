@@ -1,4 +1,4 @@
-# 🎚️ Video & Audio Manager v2.0 - Chrome Extension
+# 🎚️ Video & Audio Manager v2.2 - Chrome Extension
 
 [English](#english) | [Русский](#russian)
 
@@ -11,10 +11,29 @@
 [![Chrome Web Store Version](https://img.shields.io/chrome-web-store/v/efkidfgpglnlabaphedbiglpdaigfkpj?color=blue)](https://chrome.google.com/webstore/detail/video-audio-manager/efkidfgpglnlabaphedbiglpdaigfkpj)
 [![GitHub license](https://img.shields.io/badge/license-GPL--3.0-blue)](https://github.com/ClearNetSky/Video-Audio-Manage-Real-Time-Video-and-Audio-Processing/blob/main/LICENSE)
 ![Manifest Version](https://img.shields.io/badge/manifest-v3-important)
-![Version](https://img.shields.io/badge/version-2.0.0-brightgreen)
+![Version](https://img.shields.io/badge/version-2.2.0-brightgreen)
 
 **Professional real-time video and audio processing for any website**  
 *Created by Aristarh Ucolov*
+
+### ✨ What's New in v2.2
+
+- 🌐 **In-app language switcher** - EN/RU button right in the popup header, plus a language setting (Auto/English/Русский) in Advanced Settings
+- ⏩ **Playback Speed control** - 0.25x to 3x with pitch preservation
+- 🛡️ **Anti-clipping limiter** - Automatically engages during volume boost; boost extended to 300%
+- 🎛️ **One-click preset cards** - Presets are now a grid of cards instead of a dropdown; custom presets deletable in place
+- 🎯 **Smarter UX** - Per-tab reset buttons, double-click a value to reset it, dot indicators on tabs with active changes, dimmed UI when disabled
+
+### ✨ What's New in v2.1
+
+- 🎨 **Complete UI redesign** - Modern gradient accent, card layout, icon tabs, new equalizer
+- 🔊 **Reverb, Delay & Reverse Stereo now work** - Real Web Audio implementation
+- 🌡️ **Sharpness & Color Temperature now work** - Implemented via SVG filters, temperature slider added
+- 🌒 **Vignette fixed** - Now renders correctly on top of the video
+- 🌐 **Localization fixed** - Russian interface finally displays (MV3 CSP bug)
+- ⌨️ **Real keyboard shortcuts** - Alt+Shift+V toggle, Alt+Shift+R reset (configurable)
+- 🖼️ **Iframe support** - Embedded players are now processed
+- 🔇 **Audio reliability** - Fixed sound disappearing due to suspended/closed AudioContext
 
 ### ✨ What's New in v2.0
 
@@ -104,6 +123,25 @@ If you enjoy using this extension, consider supporting development:
 
 **Профессиональная обработка видео и аудио в реальном времени**  
 *Создано Аристархом Уколовым*
+
+### ✨ Что нового в v2.2
+
+- 🌐 **Переключатель языка в интерфейсе** - Кнопка EN/RU прямо в шапке попапа + настройка языка (Авто/English/Русский) в расширенных настройках
+- ⏩ **Скорость воспроизведения** - От 0.25x до 3x с сохранением тона
+- 🛡️ **Лимитер против искажений** - Автоматически включается при усилении громкости; буст расширен до 300%
+- 🎛️ **Пресеты в один клик** - Сетка карточек вместо выпадающего списка; свои пресеты удаляются на месте
+- 🎯 **Удобнее в мелочах** - Кнопки сброса на вкладках, двойной клик по значению сбрасывает его, точки-индикаторы активных изменений, затемнение при выключении
+
+### ✨ Что нового в v2.1
+
+- 🎨 **Полный редизайн интерфейса** - Современный градиентный акцент, карточки, вкладки с иконками
+- 🔊 **Реверберация, эхо и реверс стерео теперь работают** - Реальная реализация на Web Audio API
+- 🌡️ **Резкость и температура цвета теперь работают** - Реализованы через SVG-фильтры, добавлен ползунок температуры
+- 🌒 **Виньетка исправлена** - Теперь корректно отображается поверх видео
+- 🌐 **Исправлена локализация** - Русский интерфейс наконец отображается (баг CSP в MV3)
+- ⌨️ **Настоящие горячие клавиши** - Alt+Shift+V вкл/выкл, Alt+Shift+R сброс (настраиваются)
+- 🖼️ **Поддержка iframe** - Обрабатываются встроенные плееры
+- 🔇 **Надёжность звука** - Исправлено пропадание звука из-за приостановленного/закрытого AudioContext
 
 ### ✨ Что нового в v2.0
 

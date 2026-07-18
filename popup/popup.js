@@ -1,110 +1,195 @@
-document.addEventListener('DOMContentLoaded', function() {
+document.addEventListener('DOMContentLoaded', async function() {
+    // Localization must be ready before anything renders text
+    // (MV3 CSP forbids inline scripts, so this runs from popup.js)
+    await i18n.init();
+
+    const DEFAULT_VIDEO_SETTINGS = {
+        brightness: 100, contrast: 100, saturation: 100,
+        sharpness: 0, hue: 0, grayscale: 0,
+        invert: 0, sepia: 0, blur: 0,
+        opacity: 100, vignette: 0, temperature: 0,
+        speed: 100
+    };
+    const DEFAULT_AUDIO_SETTINGS = {
+        volume: 100, bass: 0, pan: 0,
+        reverb: false, reverbLevel: 30,
+        delay: false, delayLevel: 30,
+        stereoReverse: false,
+        equalizer: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+    };
+
     let currentSettings = {
-        videoSettings: {
-            brightness: 100, contrast: 100, saturation: 100,
-            sharpness: 0, hue: 0, grayscale: 0,
-            invert: 0, sepia: 0, blur: 0,
-            opacity: 100, vignette: 0, temperature: 0
-        },
-        audioSettings: {
-            volume: 100, bass: 0, pan: 0,
-            reverb: false, reverbLevel: 30,
-            delay: false, delayLevel: 30,
-            stereoReverse: false,
-            equalizer: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
-        },
+        videoSettings: { ...DEFAULT_VIDEO_SETTINGS },
+        audioSettings: { ...DEFAULT_AUDIO_SETTINGS },
         enabled: true
     };
     let saveTimeout;
+    let tooltipsEnabled = true;
 
-    // Tab switching
+    // Show real version from the manifest
+    const version = chrome.runtime.getManifest().version;
+    document.getElementById('versionValue').textContent = version;
+    document.querySelectorAll('.credits-version').forEach((el) => { el.textContent = version; });
+
+    /* ---------------- Toast & inline confirmation ---------------- */
+
+    let toastTimeout;
+    function showToast(message, isError) {
+        const toast = document.getElementById('toast');
+        toast.textContent = message;
+        toast.classList.toggle('error', !!isError);
+        toast.classList.add('show');
+        clearTimeout(toastTimeout);
+        toastTimeout = setTimeout(() => toast.classList.remove('show'), 2200);
+    }
+
+    // Two-step confirmation: first click arms the button, second confirms.
+    // window.confirm() is unreliable in MV3 popups.
+    function confirmClick(button, onConfirm) {
+        if (button.dataset.confirming === 'true') {
+            delete button.dataset.confirming;
+            button.classList.remove('confirming');
+            button.textContent = button.dataset.originalText;
+            onConfirm();
+            return;
+        }
+        button.dataset.confirming = 'true';
+        button.dataset.originalText = button.textContent;
+        button.classList.add('confirming');
+        button.textContent = i18n.getMessage('confirmQuestion');
+        setTimeout(() => {
+            if (button.dataset.confirming === 'true') {
+                delete button.dataset.confirming;
+                button.classList.remove('confirming');
+                button.textContent = button.dataset.originalText;
+            }
+        }, 3000);
+    }
+
+    /* ---------------- Theme ---------------- */
+
+    function applyTheme(theme) {
+        let resolved = theme || 'dark';
+        if (resolved === 'system') {
+            resolved = window.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark';
+        }
+        document.body.classList.remove('dark', 'light');
+        document.body.classList.add(resolved);
+    }
+
+    /* ---------------- Language switching ---------------- */
+
+    const langBtn = document.getElementById('langToggle');
+
+    function updateLangButton() {
+        langBtn.textContent = i18n.getLanguage().toUpperCase();
+        langBtn.title = i18n.getMessage('switchLanguage');
+    }
+
+    langBtn.addEventListener('click', async () => {
+        const next = i18n.getLanguage() === 'ru' ? 'en' : 'ru';
+        await i18n.setLanguage(next);
+        relocalize();
+    });
+
+    // Re-renders every localized string after a language change
+    function relocalize() {
+        i18n.localizePage();
+        updateLangButton();
+        updateUIWithSettings();
+        renderPresetGrid();
+        rebuildTooltips();
+        applyValueChipTitles();
+    }
+
+    /* ---------------- Tabs ---------------- */
+
     const tabBtns = document.querySelectorAll('.tab-btn');
     const tabContents = document.querySelectorAll('.tab-content');
-    
+
     tabBtns.forEach(btn => {
         btn.addEventListener('click', () => {
             const tabId = btn.getAttribute('data-tab');
-            
             tabBtns.forEach(b => b.classList.remove('active'));
             btn.classList.add('active');
-            
             tabContents.forEach(content => {
-                content.classList.remove('active');
-                if (content.id === `${tabId}-tab`) {
-                    content.classList.add('active');
-                }
+                content.classList.toggle('active', content.id === `${tabId}-tab`);
             });
         });
     });
-    
+
+    // Dot badge on tabs whose settings differ from defaults
+    function updateTabBadges() {
+        const vs = currentSettings.videoSettings;
+        const as = currentSettings.audioSettings;
+
+        const videoChanged = videoControls.some(
+            (c) => (vs[c] ?? DEFAULT_VIDEO_SETTINGS[c]) !== DEFAULT_VIDEO_SETTINGS[c]);
+        const audioChanged = ['volume', 'bass', 'pan'].some(
+            (c) => (as[c] ?? DEFAULT_AUDIO_SETTINGS[c]) !== DEFAULT_AUDIO_SETTINGS[c]) ||
+            !!as.reverb || !!as.delay || !!as.stereoReverse;
+        const eqChanged = (as.equalizer || []).some((v) => v !== 0);
+
+        document.querySelector('.tab-btn[data-tab="video"]').classList.toggle('has-changes', videoChanged);
+        document.querySelector('.tab-btn[data-tab="audio"]').classList.toggle('has-changes', audioChanged);
+        document.querySelector('.tab-btn[data-tab="equalizer"]').classList.toggle('has-changes', eqChanged);
+    }
+
+    /* ---------------- Settings load / UI sync ---------------- */
+
     function loadSettings() {
-        chrome.storage.sync.get(['videoSettings', 'audioSettings', 'enabled', 'uiTheme'], (data) => {
+        chrome.storage.sync.get(['videoSettings', 'audioSettings', 'enabled', 'uiTheme', 'showTooltips'], (data) => {
             if (data.videoSettings) {
-                currentSettings.videoSettings = data.videoSettings;
+                currentSettings.videoSettings = { ...DEFAULT_VIDEO_SETTINGS, ...data.videoSettings };
             }
             if (data.audioSettings) {
-                currentSettings.audioSettings = {
-                    ...currentSettings.audioSettings,
-                    ...data.audioSettings
-                };
+                currentSettings.audioSettings = { ...DEFAULT_AUDIO_SETTINGS, ...data.audioSettings };
             }
             if (typeof data.enabled !== 'undefined') {
                 currentSettings.enabled = data.enabled;
             }
+            tooltipsEnabled = data.showTooltips !== false;
 
             updateUIWithSettings();
             sendSettingsToContent();
-            
-            // Apply theme
-            if (data.uiTheme) {
-                document.body.className = data.uiTheme;
-            }
+            applyTheme(data.uiTheme);
+            rebuildTooltips();
         });
     }
-    
+
     function updateUIWithSettings() {
         document.getElementById('extensionToggle').checked = currentSettings.enabled;
-        document.getElementById('toggleStatus').textContent = chrome.i18n.getMessage(currentSettings.enabled ? 'enabled' : 'disabled');
-        
-        // Video settings
-        setSliderValue('brightness', currentSettings.videoSettings.brightness);
-        setSliderValue('contrast', currentSettings.videoSettings.contrast);
-        setSliderValue('saturation', currentSettings.videoSettings.saturation);
-        setSliderValue('sharpness', currentSettings.videoSettings.sharpness);
-        setSliderValue('hue', currentSettings.videoSettings.hue);
-        setSliderValue('grayscale', currentSettings.videoSettings.grayscale);
-        setSliderValue('invert', currentSettings.videoSettings.invert);
-        setSliderValue('sepia', currentSettings.videoSettings.sepia);
-        setSliderValue('blur', currentSettings.videoSettings.blur);
-        setSliderValue('opacity', currentSettings.videoSettings.opacity || 100);
-        setSliderValue('vignette', currentSettings.videoSettings.vignette || 0);
-        
-        // Audio settings
+        document.body.classList.toggle('ext-off', !currentSettings.enabled);
+
+        videoControls.forEach((control) => {
+            setSliderValue(control, currentSettings.videoSettings[control] ?? DEFAULT_VIDEO_SETTINGS[control]);
+        });
+
         setSliderValue('volume', currentSettings.audioSettings.volume);
         setSliderValue('bass', currentSettings.audioSettings.bass);
         setSliderValue('pan', currentSettings.audioSettings.pan);
         setSliderValue('reverbLevel', currentSettings.audioSettings.reverbLevel);
         setSliderValue('delayLevel', currentSettings.audioSettings.delayLevel);
-        
+
         document.getElementById('stereoReverse').checked = currentSettings.audioSettings.stereoReverse || false;
         document.getElementById('reverb').checked = currentSettings.audioSettings.reverb || false;
         document.getElementById('delay').checked = currentSettings.audioSettings.delay || false;
-        
-        // Equalizer
-        const eqIds = ['eq-32', 'eq-64', 'eq-125', 'eq-250', 'eq-500', 'eq-1k', 'eq-2k', 'eq-4k', 'eq-8k', 'eq-16k'];
+
         if (currentSettings.audioSettings.equalizer) {
             eqIds.forEach((id, index) => {
                 const slider = document.getElementById(id);
-                if (slider && currentSettings.audioSettings.equalizer[index] !== undefined) {
-                    slider.value = currentSettings.audioSettings.equalizer[index];
-                    updateEQDisplay(id, currentSettings.audioSettings.equalizer[index]);
+                const value = currentSettings.audioSettings.equalizer[index];
+                if (slider && value !== undefined) {
+                    slider.value = value;
+                    updateEQDisplay(id, value);
                 }
             });
         }
-        
+
         toggleDependentControls();
+        updateTabBadges();
     }
-    
+
     function setSliderValue(id, value) {
         const slider = document.getElementById(id);
         if (slider) {
@@ -112,109 +197,111 @@ document.addEventListener('DOMContentLoaded', function() {
             updateSliderDisplay(id, value);
         }
     }
-    
+
     function updateSliderDisplay(id, value) {
         const displayElement = document.getElementById(`${id}Value`);
-        if (!displayElement) return;
-        
-        switch (id) {
-            case 'brightness':
-            case 'contrast':
-            case 'saturation':
-            case 'volume':
-            case 'opacity':
-                displayElement.textContent = `${value}%`;
-                break;
-            case 'sharpness':
-                displayElement.textContent = value;
-                break;
-            case 'hue':
-                displayElement.textContent = `${value}°`;
-                break;
-            case 'grayscale':
-            case 'invert':
-            case 'sepia':
-            case 'reverbLevel':
-            case 'delayLevel':
-            case 'vignette':
-                displayElement.textContent = `${value}%`;
-                break;
-            case 'blur':
-                displayElement.textContent = `${value}px`;
-                break;
-            case 'bass':
-                displayElement.textContent = `${value}dB`;
-                break;
-            case 'pan':
-                if (value === 0) {
-                    displayElement.textContent = chrome.i18n.getMessage('center') || 'Center';
-                } else if (value < 0) {
-                    displayElement.textContent = `${chrome.i18n.getMessage('left') || 'Left'} ${Math.abs(value)}%`;
-                } else {
-                    displayElement.textContent = `${chrome.i18n.getMessage('right') || 'Right'} ${value}%`;
-                }
-                break;
-            default:
-                displayElement.textContent = value;
+        if (displayElement) {
+            switch (id) {
+                case 'brightness':
+                case 'contrast':
+                case 'saturation':
+                case 'volume':
+                case 'opacity':
+                case 'grayscale':
+                case 'invert':
+                case 'sepia':
+                case 'reverbLevel':
+                case 'delayLevel':
+                case 'vignette':
+                    displayElement.textContent = `${value}%`;
+                    break;
+                case 'speed':
+                    displayElement.textContent = `${parseFloat((value / 100).toFixed(2))}x`;
+                    break;
+                case 'sharpness':
+                case 'temperature':
+                    displayElement.textContent = value > 0 ? `+${value}` : `${value}`;
+                    break;
+                case 'hue':
+                    displayElement.textContent = `${value}°`;
+                    break;
+                case 'blur':
+                    displayElement.textContent = `${value}px`;
+                    break;
+                case 'bass':
+                    displayElement.textContent = `${value}dB`;
+                    break;
+                case 'pan':
+                    if (value === 0) {
+                        displayElement.textContent = i18n.getMessage('center');
+                    } else if (value < 0) {
+                        displayElement.textContent = `${i18n.getMessage('left')} ${Math.abs(value)}%`;
+                    } else {
+                        displayElement.textContent = `${i18n.getMessage('right')} ${value}%`;
+                    }
+                    break;
+                default:
+                    displayElement.textContent = value;
+            }
         }
-        
-        // Update slider background gradient
+
+        // Fill the track up to the current position
         const slider = document.getElementById(id);
         if (slider) {
             const min = parseFloat(slider.min);
             const max = parseFloat(slider.max);
             const percentage = ((value - min) / (max - min)) * 100;
-            slider.style.background = `linear-gradient(to right, var(--accent) 0%, var(--accent) ${percentage}%, var(--border-dark) ${percentage}%, var(--border-dark) 100%)`;
+            slider.style.background = `linear-gradient(to right, var(--accent) 0%, var(--accent) ${percentage}%, var(--track) ${percentage}%, var(--track) 100%)`;
         }
     }
-    
+
     function updateEQDisplay(id, value) {
         const displayElement = document.getElementById(`${id}-value`);
         if (displayElement) {
-            displayElement.textContent = `${value > 0 ? '+' : ''}${value}dB`;
+            displayElement.textContent = `${value > 0 ? '+' : ''}${value}`;
         }
     }
-    
+
     function toggleDependentControls() {
-        const reverbChecked = document.getElementById('reverb').checked;
-        const delayChecked = document.getElementById('delay').checked;
-        
-        document.getElementById('reverbLevelGroup').style.display = reverbChecked ? 'block' : 'none';
-        document.getElementById('delayLevelGroup').style.display = delayChecked ? 'block' : 'none';
+        document.getElementById('reverbLevelGroup').style.display =
+            document.getElementById('reverb').checked ? 'block' : 'none';
+        document.getElementById('delayLevelGroup').style.display =
+            document.getElementById('delay').checked ? 'block' : 'none';
     }
-    
+
+    // Manual tweaks mean the current state no longer matches a preset
+    function markCustomized() {
+        activePresetName = null;
+        highlightActiveChip();
+        updateTabBadges();
+    }
+
+    /* ---------------- Control listeners ---------------- */
+
     document.getElementById('extensionToggle').addEventListener('change', function() {
         currentSettings.enabled = this.checked;
-        document.getElementById('toggleStatus').textContent = chrome.i18n.getMessage(this.checked ? 'enabled' : 'disabled');
-        
+        document.body.classList.toggle('ext-off', !this.checked);
         sendSettingsToContent();
         chrome.storage.sync.set({ enabled: currentSettings.enabled });
     });
-    
-    const videoControls = ['brightness', 'contrast', 'saturation', 'sharpness', 'hue', 
-                         'grayscale', 'invert', 'sepia', 'blur', 'opacity', 'vignette'];
-    
+
+    const videoControls = ['speed', 'brightness', 'contrast', 'saturation', 'sharpness', 'temperature',
+                           'hue', 'grayscale', 'invert', 'sepia', 'blur', 'opacity', 'vignette'];
+
     videoControls.forEach(control => {
         const slider = document.getElementById(control);
         if (slider) {
             slider.addEventListener('input', () => {
-                const value = parseInt(slider.value);
+                const value = parseInt(slider.value, 10);
                 updateSliderDisplay(control, value);
-                
                 currentSettings.videoSettings[control] = value;
-                slider.classList.add('active');
-                
+                markCustomized();
                 sendSettingsToContent();
                 scheduleSave();
-                
-                setTimeout(() => {
-                    slider.classList.remove('active');
-                }, 300);
             });
         }
     });
-    
-    // Equalizer controls
+
     const eqIds = ['eq-32', 'eq-64', 'eq-125', 'eq-250', 'eq-500', 'eq-1k', 'eq-2k', 'eq-4k', 'eq-8k', 'eq-16k'];
     eqIds.forEach((id, index) => {
         const slider = document.getElementById(id);
@@ -222,154 +309,146 @@ document.addEventListener('DOMContentLoaded', function() {
             slider.addEventListener('input', () => {
                 const value = parseFloat(slider.value);
                 updateEQDisplay(id, value);
-                
                 if (!currentSettings.audioSettings.equalizer) {
                     currentSettings.audioSettings.equalizer = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
                 }
                 currentSettings.audioSettings.equalizer[index] = value;
-                
+                markCustomized();
                 sendSettingsToContent();
                 scheduleSave();
             });
         }
     });
-    
-    // EQ Reset button
-    const eqResetBtn = document.getElementById('eqResetBtn');
-    if (eqResetBtn) {
-        eqResetBtn.addEventListener('click', () => {
-            currentSettings.audioSettings.equalizer = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
-            eqIds.forEach((id, index) => {
-                const slider = document.getElementById(id);
-                if (slider) {
-                    slider.value = 0;
-                    updateEQDisplay(id, 0);
-                }
-            });
-            sendSettingsToContent();
-            scheduleSave();
+
+    document.getElementById('eqResetBtn').addEventListener('click', () => {
+        currentSettings.audioSettings.equalizer = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
+        eqIds.forEach((id) => {
+            const slider = document.getElementById(id);
+            if (slider) {
+                slider.value = 0;
+                updateEQDisplay(id, 0);
+            }
         });
-    }
-    
+        markCustomized();
+        sendSettingsToContent();
+        scheduleSave();
+    });
+
+    document.getElementById('videoResetBtn').addEventListener('click', () => {
+        currentSettings.videoSettings = { ...DEFAULT_VIDEO_SETTINGS };
+        updateUIWithSettings();
+        markCustomized();
+        sendSettingsToContent();
+        scheduleSave();
+    });
+
+    document.getElementById('audioResetBtn').addEventListener('click', () => {
+        // Keep the equalizer: it has its own reset on the EQ tab
+        const equalizer = currentSettings.audioSettings.equalizer;
+        currentSettings.audioSettings = { ...DEFAULT_AUDIO_SETTINGS, equalizer };
+        updateUIWithSettings();
+        markCustomized();
+        sendSettingsToContent();
+        scheduleSave();
+    });
+
     const audioSliders = ['volume', 'bass', 'pan', 'reverbLevel', 'delayLevel'];
-    
     audioSliders.forEach(control => {
         const slider = document.getElementById(control);
         if (slider) {
             slider.addEventListener('input', () => {
-                const value = parseInt(slider.value);
+                const value = parseInt(slider.value, 10);
                 updateSliderDisplay(control, value);
-                
                 currentSettings.audioSettings[control] = value;
-                slider.classList.add('active');
-                
+                markCustomized();
                 sendSettingsToContent();
                 scheduleSave();
-                
-                setTimeout(() => {
-                    slider.classList.remove('active');
-                }, 300);
             });
         }
     });
-    
+
     const audioCheckboxes = ['stereoReverse', 'reverb', 'delay'];
-    
     audioCheckboxes.forEach(control => {
         const checkbox = document.getElementById(control);
         if (checkbox) {
             checkbox.addEventListener('change', () => {
-                const checked = checkbox.checked;
-                currentSettings.audioSettings[control] = checked;
-                
+                currentSettings.audioSettings[control] = checkbox.checked;
+                markCustomized();
                 sendSettingsToContent();
                 scheduleSave();
                 toggleDependentControls();
             });
         }
     });
-    
+
+    // Double-click on a value chip resets that single control to its default
+    function resetSingleControl(id) {
+        if (videoControls.includes(id)) {
+            currentSettings.videoSettings[id] = DEFAULT_VIDEO_SETTINGS[id];
+            setSliderValue(id, DEFAULT_VIDEO_SETTINGS[id]);
+        } else if (id in DEFAULT_AUDIO_SETTINGS) {
+            currentSettings.audioSettings[id] = DEFAULT_AUDIO_SETTINGS[id];
+            setSliderValue(id, DEFAULT_AUDIO_SETTINGS[id]);
+        } else {
+            return;
+        }
+        markCustomized();
+        sendSettingsToContent();
+        scheduleSave();
+    }
+
+    function applyValueChipTitles() {
+        const hint = i18n.getMessage('dblClickReset');
+        document.querySelectorAll('.value[id$="Value"]').forEach((chip) => {
+            chip.title = hint;
+        });
+    }
+
+    document.querySelectorAll('.value[id$="Value"]').forEach((chip) => {
+        const id = chip.id.slice(0, -'Value'.length);
+        chip.addEventListener('dblclick', () => resetSingleControl(id));
+    });
+
     function scheduleSave() {
         clearTimeout(saveTimeout);
         saveTimeout = setTimeout(() => {
             chrome.storage.sync.set({
                 videoSettings: currentSettings.videoSettings,
-                audioSettings: currentSettings.audioSettings
+                audioSettings: currentSettings.audioSettings,
+                lastPreset: activePresetName || ''
             });
         }, 500);
     }
-    
+
     function sendSettingsToContent() {
-        chrome.tabs.query({active: true, currentWindow: true}, (tabs) => {
+        chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
             if (tabs[0]?.id) {
                 chrome.tabs.sendMessage(tabs[0].id, {
                     action: "applySettings",
                     settings: currentSettings
-                }, (response) => {
-                    if (chrome.runtime.lastError) {
-                        console.log("Cannot send message to tab:", chrome.runtime.lastError);
-                    }
+                }, () => {
+                    void chrome.runtime.lastError; // tab may have no content script
                 });
             }
         });
     }
 
-    // Preset handling
-    document.getElementById('applyPresetBtn').addEventListener('click', applyPreset);
-    document.getElementById('savePresetBtn').addEventListener('click', savePreset);
-    document.getElementById('deletePresetBtn').addEventListener('click', deletePreset);
-    document.getElementById('exportBtn').addEventListener('click', exportSettings);
-    document.getElementById('importBtn').addEventListener('click', () => {
-        document.getElementById('importFile').click();
-    });
-    document.getElementById('importFile').addEventListener('change', importSettings);
+    /* ---------------- Presets ---------------- */
 
-    // Donation buttons
-    document.getElementById('coffeeBtn').addEventListener('click', () => {
-        window.open('https://www.buymeacoffee.com/aristarh.ucolov', '_blank');
-    });
+    const BUILT_IN_PRESET_DEFS = [
+        { id: 'default', nameKey: 'presetDefault' },
+        { id: 'cinematic', nameKey: 'presetCinematic' },
+        { id: 'vintage', nameKey: 'presetVintage' },
+        { id: 'night', nameKey: 'presetNight' },
+        { id: 'bassBoost', nameKey: 'presetBassBoost' },
+        { id: 'voiceClarity', nameKey: 'presetVoiceClarity' },
+        { id: 'warm', nameKey: 'presetWarm' },
+        { id: 'cool', nameKey: 'presetCool' },
+        { id: 'highContrast', nameKey: 'presetHighContrast' }
+    ];
+    const BUILT_IN_PRESET_IDS = BUILT_IN_PRESET_DEFS.map((def) => def.id);
+    let activePresetName = null;
 
-    // Quick actions
-    document.getElementById('resetBtn').addEventListener('click', resetSettings);
-    document.getElementById('advancedBtn').addEventListener('click', () => {
-        chrome.runtime.openOptionsPage();
-    });
-
-    function applyPreset() {
-        const presetSelect = document.getElementById('presetSelect');
-        const presetName = presetSelect.value;
-        
-        if (presetName === 'default') {
-            resetSettings();
-            return;
-        }
-        
-        chrome.storage.sync.get(['customPresets'], (data) => {
-            const customPresets = data.customPresets || {};
-            const builtInPresets = getBuiltInPresets();
-            const allPresets = {...builtInPresets, ...customPresets};
-            
-            if (allPresets[presetName]) {
-                currentSettings = {
-                    videoSettings: {...allPresets[presetName].videoSettings},
-                    audioSettings: {...allPresets[presetName].audioSettings},
-                    enabled: true
-                };
-                
-                updateUIWithSettings();
-                sendSettingsToContent();
-                
-                chrome.storage.sync.set({
-                    videoSettings: currentSettings.videoSettings,
-                    audioSettings: currentSettings.audioSettings,
-                    lastPreset: presetName
-                });
-                
-                updatePresetDescription(presetName);
-            }
-        });
-    }
-    
     function getBuiltInPresets() {
         return {
             cinematic: {
@@ -418,12 +497,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 }
             },
             bassBoost: {
-                videoSettings: {
-                    brightness: 100, contrast: 100, saturation: 100,
-                    sharpness: 0, hue: 0, grayscale: 0,
-                    invert: 0, sepia: 0, blur: 0,
-                    opacity: 100, vignette: 0, temperature: 0
-                },
+                videoSettings: { ...DEFAULT_VIDEO_SETTINGS },
                 audioSettings: {
                     volume: 100, bass: 12, pan: 0,
                     reverb: false, reverbLevel: 30,
@@ -433,12 +507,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 }
             },
             voiceClarity: {
-                videoSettings: {
-                    brightness: 100, contrast: 100, saturation: 100,
-                    sharpness: 5, hue: 0, grayscale: 0,
-                    invert: 0, sepia: 0, blur: 0,
-                    opacity: 100, vignette: 0, temperature: 0
-                },
+                videoSettings: { ...DEFAULT_VIDEO_SETTINGS, sharpness: 5 },
                 audioSettings: {
                     volume: 100, bass: -5, pan: 0,
                     reverb: false, reverbLevel: 30,
@@ -484,121 +553,169 @@ document.addEventListener('DOMContentLoaded', function() {
                     invert: 0, sepia: 0, blur: 0,
                     opacity: 100, vignette: 20, temperature: 0
                 },
-                audioSettings: {
-                    volume: 100, bass: 0, pan: 0,
-                    reverb: false, reverbLevel: 30,
-                    delay: false, delayLevel: 30,
-                    stereoReverse: false,
-                    equalizer: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
-                }
+                audioSettings: { ...DEFAULT_AUDIO_SETTINGS }
             }
         };
     }
-    
-    function savePreset() {
-        const promptMsg = chrome.i18n.getMessage('enterPresetName') || "Enter a name for your preset:";
-        const presetName = prompt(promptMsg);
-        if (!presetName) return;
-        
+
+    function renderPresetGrid() {
+        chrome.storage.sync.get(['customPresets', 'lastPreset'], (data) => {
+            const grid = document.getElementById('presetGrid');
+            grid.textContent = '';
+            activePresetName = data.lastPreset || null;
+
+            BUILT_IN_PRESET_DEFS.forEach((def) => {
+                grid.appendChild(makePresetChip(def.id, i18n.getMessage(def.nameKey), false));
+            });
+            Object.keys(data.customPresets || {}).forEach((name) => {
+                grid.appendChild(makePresetChip(name, name, true));
+            });
+
+            highlightActiveChip();
+            updatePresetDescription(activePresetName);
+        });
+    }
+
+    function makePresetChip(name, label, isCustom) {
+        const chip = document.createElement('button');
+        chip.type = 'button';
+        chip.className = 'preset-chip' + (isCustom ? ' custom' : '');
+        chip.dataset.preset = name;
+        chip.title = label;
+
+        const text = document.createElement('span');
+        text.textContent = label;
+        chip.appendChild(text);
+
+        chip.addEventListener('click', () => applyPresetByName(name));
+
+        if (isCustom) {
+            const del = document.createElement('span');
+            del.className = 'chip-delete';
+            del.textContent = '×';
+            del.title = i18n.getMessage('deletePreset');
+            del.addEventListener('click', (e) => {
+                e.stopPropagation();
+                if (del.classList.contains('arm')) {
+                    deleteCustomPreset(name);
+                } else {
+                    del.classList.add('arm');
+                    setTimeout(() => del.classList.remove('arm'), 2500);
+                }
+            });
+            chip.appendChild(del);
+        }
+
+        return chip;
+    }
+
+    function highlightActiveChip() {
+        document.querySelectorAll('.preset-chip').forEach((chip) => {
+            chip.classList.toggle('active', chip.dataset.preset === activePresetName);
+        });
+    }
+
+    function applyPresetByName(presetName) {
+        if (presetName === 'default') {
+            doResetSettings();
+            return;
+        }
+
+        chrome.storage.sync.get(['customPresets'], (data) => {
+            const customPresets = data.customPresets || {};
+            const allPresets = { ...getBuiltInPresets(), ...customPresets };
+            if (!allPresets[presetName]) return;
+
+            currentSettings = {
+                videoSettings: { ...DEFAULT_VIDEO_SETTINGS, ...allPresets[presetName].videoSettings },
+                audioSettings: { ...DEFAULT_AUDIO_SETTINGS, ...allPresets[presetName].audioSettings },
+                enabled: true
+            };
+            activePresetName = presetName;
+
+            updateUIWithSettings();
+            highlightActiveChip();
+            updatePresetDescription(presetName);
+            sendSettingsToContent();
+
+            chrome.storage.sync.set({
+                videoSettings: currentSettings.videoSettings,
+                audioSettings: currentSettings.audioSettings,
+                lastPreset: presetName
+            });
+        });
+    }
+
+    function confirmSavePreset() {
+        const input = document.getElementById('presetNameInput');
+        const presetName = input.value.trim();
+        if (!presetName) {
+            input.focus();
+            return;
+        }
+
         chrome.storage.sync.get(['customPresets'], (data) => {
             const customPresets = data.customPresets || {};
             customPresets[presetName] = {
-                videoSettings: {...currentSettings.videoSettings},
-                audioSettings: {...currentSettings.audioSettings}
+                videoSettings: { ...currentSettings.videoSettings },
+                audioSettings: { ...currentSettings.audioSettings }
             };
-            
-            chrome.storage.sync.set({ customPresets }, () => {
-                updatePresetDropdown();
-                document.getElementById('presetSelect').value = presetName;
-                updatePresetDescription(presetName);
-                const savedMsg = chrome.i18n.getMessage('presetSaved', [presetName]) || `Preset "${presetName}" saved successfully!`;
-                alert(savedMsg);
+
+            chrome.storage.sync.set({ customPresets, lastPreset: presetName }, () => {
+                input.value = '';
+                renderPresetGrid();
+                showToast(i18n.getMessage('presetSaved', [presetName]));
             });
         });
     }
-    
-    function deletePreset() {
-        const presetSelect = document.getElementById('presetSelect');
-        const presetName = presetSelect.value;
-        
-        const builtInPresets = ['default', 'cinematic', 'vintage', 'night', 'bassBoost', 'voiceClarity', 'warm', 'cool', 'highContrast'];
-        if (builtInPresets.includes(presetName)) {
-            const cannotDeleteMsg = chrome.i18n.getMessage('cannotDeleteBuiltIn') || "Cannot delete built-in presets!";
-            alert(cannotDeleteMsg);
-            return;
-        }
-        
-        const confirmMsg = chrome.i18n.getMessage('confirmDelete', [presetName]) || `Are you sure you want to delete the "${presetName}" preset?`;
-        if (!confirm(confirmMsg)) {
-            return;
-        }
-        
+
+    function deleteCustomPreset(presetName) {
+        if (BUILT_IN_PRESET_IDS.includes(presetName)) return;
+
         chrome.storage.sync.get(['customPresets'], (data) => {
             const customPresets = data.customPresets || {};
-            
-            if (customPresets[presetName]) {
-                delete customPresets[presetName];
-                
-                chrome.storage.sync.set({ customPresets }, () => {
-                    updatePresetDropdown();
-                    presetSelect.value = 'default';
-                    updatePresetDescription('default');
-                });
-            } else {
-                const notFoundMsg = chrome.i18n.getMessage('presetNotFound') || "Preset not found!";
-                alert(notFoundMsg);
+            if (!customPresets[presetName]) return;
+
+            delete customPresets[presetName];
+            const update = { customPresets };
+            if (activePresetName === presetName) {
+                activePresetName = null;
+                update.lastPreset = '';
             }
+            chrome.storage.sync.set(update, () => renderPresetGrid());
         });
     }
-    
-    function updatePresetDropdown() {
-        chrome.storage.sync.get(['customPresets', 'lastPreset'], (data) => {
-            const presetSelect = document.getElementById('presetSelect');
-            const customPresets = data.customPresets || {};
-            
-            while (presetSelect.options.length > 6) {
-                presetSelect.remove(6);
-            }
-            
-            Object.keys(customPresets).forEach(presetName => {
-                const option = document.createElement('option');
-                option.value = presetName;
-                option.textContent = presetName;
-                presetSelect.appendChild(option);
-            });
-            
-            if (data.lastPreset) {
-                presetSelect.value = data.lastPreset;
-            }
-            
-            updatePresetDescription(presetSelect.value);
-        });
-    }
-    
+
     function updatePresetDescription(presetName) {
-        const descriptions = {
-            default: chrome.i18n.getMessage('presetDescriptionDefault'),
-            cinematic: chrome.i18n.getMessage('presetDescriptionCinematic'),
-            vintage: chrome.i18n.getMessage('presetDescriptionVintage'),
-            night: chrome.i18n.getMessage('presetDescriptionNight'),
-            bassBoost: chrome.i18n.getMessage('presetDescriptionBassBoost'),
-            voiceClarity: chrome.i18n.getMessage('presetDescriptionVoiceClarity'),
-            warm: "Adds warm, cozy tones with enhanced low frequencies. Perfect for relaxed viewing.",
-            cool: "Creates cool, crisp tones with enhanced high frequencies. Ideal for modern content.",
-            highContrast: "Dramatically enhances contrast and sharpness for maximum visual impact."
+        const descriptionKeys = {
+            default: 'presetDescriptionDefault',
+            cinematic: 'presetDescriptionCinematic',
+            vintage: 'presetDescriptionVintage',
+            night: 'presetDescriptionNight',
+            bassBoost: 'presetDescriptionBassBoost',
+            voiceClarity: 'presetDescriptionVoiceClarity',
+            warm: 'presetDescriptionWarm',
+            cool: 'presetDescriptionCool',
+            highContrast: 'presetDescriptionHighContrast'
         };
-        
-        const customDescription = chrome.i18n.getMessage('presetDescriptionCustom');
-        document.getElementById('presetDescription').textContent = 
-            descriptions[presetName] || customDescription;
+
+        let key;
+        if (!presetName) {
+            key = 'selectPresetMessage';
+        } else {
+            key = descriptionKeys[presetName] || 'presetDescriptionCustom';
+        }
+        document.getElementById('presetDescription').textContent = i18n.getMessage(key);
     }
-    
+
+    /* ---------------- Import / export ---------------- */
+
     function exportSettings() {
         chrome.storage.sync.get(['videoSettings', 'audioSettings', 'customPresets'], (data) => {
             const settingsStr = JSON.stringify(data, null, 2);
             const blob = new Blob([settingsStr], { type: 'application/json' });
             const url = URL.createObjectURL(blob);
-            
+
             const a = document.createElement('a');
             a.href = url;
             a.download = 'video_audio_manager_settings.json';
@@ -608,111 +725,129 @@ document.addEventListener('DOMContentLoaded', function() {
             URL.revokeObjectURL(url);
         });
     }
-    
+
     function importSettings(e) {
         const file = e.target.files[0];
         if (!file) return;
-        
+
         const reader = new FileReader();
         reader.onload = (event) => {
             try {
                 const settings = JSON.parse(event.target.result);
-                
+
                 if (settings.videoSettings || settings.audioSettings || settings.customPresets) {
                     chrome.storage.sync.set(settings, () => {
                         loadSettings();
-                        updatePresetDropdown();
-                        const successMsg = chrome.i18n.getMessage('settingsImported') || 'Settings imported successfully!';
-                        alert(successMsg);
+                        renderPresetGrid();
+                        showToast(i18n.getMessage('settingsImported'));
                     });
                 } else {
-                    const invalidMsg = chrome.i18n.getMessage('invalidFileFormat') || 'Invalid settings file format!';
-                    alert(invalidMsg);
+                    showToast(i18n.getMessage('invalidFileFormat'), true);
                 }
             } catch (err) {
-                const errorMsg = chrome.i18n.getMessage('errorParsingFile', [err.message]) || `Error parsing settings file: ${err.message}`;
-                alert(errorMsg);
+                showToast(i18n.getMessage('errorParsingFile', [err.message]), true);
             }
         };
         reader.readAsText(file);
-        
         e.target.value = '';
     }
-    
-    function resetSettings() {
-        const confirmMsg = chrome.i18n.getMessage('confirmReset') || "Are you sure you want to reset all settings to default?";
-        if (!confirm(confirmMsg)) {
-            return;
-        }
-        
+
+    /* ---------------- Reset ---------------- */
+
+    function doResetSettings() {
         currentSettings = {
-            videoSettings: {
-                brightness: 100, contrast: 100, saturation: 100,
-                sharpness: 0, hue: 0, grayscale: 0,
-                invert: 0, sepia: 0, blur: 0,
-                opacity: 100, vignette: 0, temperature: 0
-            },
-            audioSettings: {
-                volume: 100, bass: 0, pan: 0,
-                reverb: false, reverbLevel: 30,
-                delay: false, delayLevel: 30,
-                stereoReverse: false,
-                equalizer: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
-            },
+            videoSettings: { ...DEFAULT_VIDEO_SETTINGS },
+            audioSettings: { ...DEFAULT_AUDIO_SETTINGS },
             enabled: true
         };
-        
+        activePresetName = 'default';
+
         updateUIWithSettings();
+        highlightActiveChip();
+        updatePresetDescription('default');
         sendSettingsToContent();
-        
+
         chrome.storage.sync.set({
             videoSettings: currentSettings.videoSettings,
             audioSettings: currentSettings.audioSettings,
             lastPreset: 'default'
         });
-        
-        document.getElementById('presetSelect').value = 'default';
-        updatePresetDescription('default');
     }
 
-    // Initialize
-    loadSettings();
-    updatePresetDropdown();
-    
-    // Add tooltips
-    addTooltips();
-    
+    /* ---------------- Buttons ---------------- */
+
+    document.getElementById('confirmSavePresetBtn').addEventListener('click', confirmSavePreset);
+    document.getElementById('presetNameInput').addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') confirmSavePreset();
+    });
+    document.getElementById('exportBtn').addEventListener('click', exportSettings);
+    document.getElementById('importBtn').addEventListener('click', () => {
+        document.getElementById('importFile').click();
+    });
+    document.getElementById('importFile').addEventListener('change', importSettings);
+
+    document.getElementById('coffeeBtn').addEventListener('click', () => {
+        chrome.tabs.create({ url: 'https://www.buymeacoffee.com/aristarh.ucolov' });
+    });
+
+    document.getElementById('resetBtn').addEventListener('click', function() {
+        confirmClick(this, doResetSettings);
+    });
+    document.getElementById('advancedBtn').addEventListener('click', () => {
+        chrome.runtime.openOptionsPage();
+    });
+
+    /* ---------------- Tooltips ---------------- */
+
     function addTooltips() {
-        const tooltips = {
-            'brightness': 'Adjusts the overall lightness/darkness of the video',
-            'contrast': 'Controls the difference between light and dark areas',
-            'saturation': 'Changes the intensity of colors',
-            'sharpness': 'Adjusts edge definition (positive) or softens image (negative)',
-            'hue': 'Rotates all colors by the specified angle',
-            'grayscale': 'Converts the image to grayscale at the specified percentage',
-            'invert': 'Inverts the colors of the video',
-            'sepia': 'Applies a vintage sepia tone effect',
-            'blur': 'Adds Gaussian blur to the video',
-            'volume': 'Adjusts the overall volume level',
-            'bass': 'Boosts or reduces low frequencies',
-            'pan': 'Controls stereo balance (left/right)',
-            'stereoReverse': 'Swaps left and right audio channels',
-            'reverb': 'Adds ambient room simulation effect',
-            'delay': 'Adds echo/delay effect to the audio'
+        const tooltipKeys = {
+            speed: 'tooltipSpeed',
+            brightness: 'tooltipBrightness',
+            contrast: 'tooltipContrast',
+            saturation: 'tooltipSaturation',
+            sharpness: 'tooltipSharpness',
+            temperature: 'tooltipTemperature',
+            hue: 'tooltipHue',
+            grayscale: 'tooltipGrayscale',
+            invert: 'tooltipInvert',
+            sepia: 'tooltipSepia',
+            blur: 'tooltipBlur',
+            vignette: 'tooltipVignette',
+            volume: 'tooltipVolume',
+            bass: 'tooltipBass',
+            pan: 'tooltipPan',
+            stereoReverse: 'tooltipStereoReverse',
+            reverb: 'tooltipReverb',
+            delay: 'tooltipDelay'
         };
-        
-        Object.entries(tooltips).forEach(([id, text]) => {
+
+        Object.entries(tooltipKeys).forEach(([id, key]) => {
+            const text = i18n.getMessage(key);
+            if (!text || text === key) return;
+
             const element = document.getElementById(id);
-            if (element) {
-                const label = element.closest('.control-group')?.querySelector('label');
-                if (label && !label.querySelector('.tooltiptext')) {
-                    label.classList.add('tooltip');
-                    const tooltipSpan = document.createElement('span');
-                    tooltipSpan.className = 'tooltiptext';
-                    tooltipSpan.textContent = text;
-                    label.appendChild(tooltipSpan);
-                }
+            const label = element?.closest('.control-group')?.querySelector(`label[for="${id}"]`);
+            if (label && !label.querySelector('.tooltiptext')) {
+                label.classList.add('tooltip');
+                const tooltipSpan = document.createElement('span');
+                tooltipSpan.className = 'tooltiptext';
+                tooltipSpan.textContent = text;
+                label.appendChild(tooltipSpan);
             }
         });
     }
+
+    function rebuildTooltips() {
+        document.querySelectorAll('.tooltiptext').forEach((el) => el.remove());
+        document.querySelectorAll('label.tooltip').forEach((el) => el.classList.remove('tooltip'));
+        if (tooltipsEnabled) addTooltips();
+    }
+
+    /* ---------------- Init ---------------- */
+
+    i18n.localizePage();
+    updateLangButton();
+    applyValueChipTitles();
+    loadSettings();
+    renderPresetGrid();
 });

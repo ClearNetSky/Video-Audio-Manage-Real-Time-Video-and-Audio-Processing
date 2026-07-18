@@ -1,205 +1,355 @@
-body {
-  width: 600px;
+/* ================================================================
+   Video & Audio Manager — options page styles (v2.1 redesign)
+   ================================================================ */
+
+* {
   margin: 0;
-  padding: 20px;
-  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-  background-color: #2d2d2d;
-  color: #e0e0e0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+:root {
+  --accent: #8b5cf6;
+  --accent-2: #6366f1;
+  --accent-grad: linear-gradient(135deg, #6366f1 0%, #a855f7 100%);
+  --accent-soft: rgba(139, 92, 246, 0.14);
+  --danger: #ef4444;
+  --danger-hover: #dc2626;
+  --radius: 12px;
+  --radius-sm: 8px;
+  --speed: 0.2s;
+}
+
+body.dark {
+  --bg: #0f1117;
+  --panel: #171b26;
+  --panel-2: #1e2432;
+  --text: #e8eaf1;
+  --text-dim: #98a0b3;
+  --border: rgba(255, 255, 255, 0.07);
+  --track: #2a3040;
+  --shadow: 0 4px 16px rgba(0, 0, 0, 0.35);
 }
 
 body.light {
-  background-color: #f5f5f5;
-  color: #333;
+  --bg: #f4f5fa;
+  --panel: #ffffff;
+  --panel-2: #edeff6;
+  --text: #1c2130;
+  --text-dim: #5c6577;
+  --border: rgba(20, 25, 45, 0.09);
+  --track: #d9deea;
+  --shadow: 0 4px 16px rgba(25, 30, 60, 0.1);
+}
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Ubuntu, sans-serif;
+  font-size: 14px;
+  line-height: 1.5;
+  background-color: var(--bg);
+  color: var(--text);
+  transition: background-color var(--speed), color var(--speed);
 }
 
 .container {
-  max-width: 100%;
+  max-width: 640px;
+  margin: 0 auto;
+  padding: 32px 20px 40px;
 }
+
+/* ---------------- Header ---------------- */
 
 header {
-  margin-bottom: 20px;
-  border-bottom: 1px solid #444;
-  padding-bottom: 10px;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-bottom: 24px;
 }
 
-body.light header {
-  border-bottom-color: #ddd;
+.brand-logo {
+  flex: 0 0 auto;
+  width: 46px;
+  height: 46px;
+  border-radius: 13px;
+  background: var(--accent-grad);
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 14px rgba(124, 92, 246, 0.35);
+}
+
+.brand-logo svg {
+  width: 26px;
+  height: 26px;
 }
 
 header h1 {
-  margin: 0;
-  color: #4CAF50;
+  font-size: 20px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
 }
+
+.subtitle {
+  font-size: 12.5px;
+  color: var(--text-dim);
+}
+
+/* ---------------- Sections ---------------- */
 
 .settings-section {
-  margin-bottom: 25px;
-  padding: 15px;
-  background-color: #333;
-  border-radius: 5px;
-}
-
-body.light .settings-section {
-  background-color: #fff;
-  border: 1px solid #ddd;
+  margin-bottom: 16px;
+  padding: 20px;
+  background-color: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
 }
 
 .settings-section h2 {
-  margin-top: 0;
-  color: #4CAF50;
-  font-size: 16px;
-  border-bottom: 1px solid #444;
-  padding-bottom: 5px;
-}
-
-body.light .settings-section h2 {
-  border-bottom-color: #ddd;
+  font-size: 13px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--accent);
+  margin-bottom: 16px;
 }
 
 .control-group {
-  margin-bottom: 15px;
+  margin-bottom: 16px;
 }
 
-.control-group label {
+.control-group:last-child {
+  margin-bottom: 0;
+}
+
+.control-group > label {
   display: block;
-  margin-bottom: 5px;
-  font-size: 14px;
+  margin-bottom: 6px;
+  font-size: 13px;
+  font-weight: 600;
 }
 
-.control-group select, 
-.control-group input[type="number"],
-.control-group input[type="text"] {
+.control-group select {
   width: 100%;
-  padding: 8px;
-  background-color: #444;
-  color: #e0e0e0;
-  border: 1px solid #555;
-  border-radius: 3px;
-  font-size: 14px;
+  max-width: 280px;
+  padding: 9px 12px;
+  background-color: var(--panel-2);
+  color: var(--text);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  font-size: 13px;
+  font-family: inherit;
+  cursor: pointer;
+  outline: none;
+  transition: border-color var(--speed);
 }
 
-body.light .control-group select,
-body.light .control-group input[type="number"],
-body.light .control-group input[type="text"] {
-  background-color: #fff;
-  color: #333;
-  border-color: #ccc;
+.control-group select:hover,
+.control-group select:focus {
+  border-color: var(--accent);
 }
 
-.control-group input[type="number"] {
-  width: 60px;
+.hint {
+  margin-top: 8px;
+  font-size: 12px;
+  color: var(--text-dim);
 }
 
-.control-group input[type="text"] {
-  margin-bottom: 5px;
-}
+/* ---------------- Checkbox rows (mini switch) ---------------- */
 
 .checkbox-group {
   display: flex;
   align-items: center;
+  justify-content: space-between;
+  gap: 12px;
 }
 
-.checkbox-group input[type="checkbox"] {
-  margin-right: 10px;
-  width: 16px;
-  height: 16px;
-  accent-color: #4CAF50;
-}
-
-.control-group button {
-  padding: 8px 15px;
-  background-color: #4CAF50;
-  color: white;
-  border: none;
-  border-radius: 3px;
+.checkbox-group > label:first-child {
+  margin-bottom: 0;
   cursor: pointer;
-  font-size: 14px;
+  user-select: none;
+  flex: 1;
 }
 
-.control-group button:hover {
-  background-color: #45a049;
-}
-
-.footer {
-  display: flex;
-  justify-content: flex-end;
-  gap: 10px;
-  margin-top: 20px;
-  padding-top: 15px;
-  border-top: 1px solid #444;
-}
-
-body.light .footer {
-  border-top-color: #ddd;
-}
-
-.footer button {
-  padding: 10px 20px;
-  font-size: 14px;
-}
-
-#saveSettings {
-  background-color: #4CAF50;
-  color: white;
-}
-
-#saveSettings:hover {
-  background-color: #45a049;
-}
-
-#cancelChanges {
-  background-color: #444;
-  color: #e0e0e0;
-}
-
-body.light #cancelChanges {
-  background-color: #ddd;
-  color: #333;
-}
-
-#cancelChanges:hover {
-  background-color: #555;
-}
-
-body.light #cancelChanges:hover {
-  background-color: #ccc;
-}
-
-#resetToDefaults {
-  background-color: #f44336;
-  color: white;
-}
-
-#resetToDefaults:hover {
-  background-color: #d32f2f;
-}
-
-.tooltip {
+.mini-switch {
   position: relative;
   display: inline-block;
+  width: 40px;
+  height: 22px;
+  flex: 0 0 auto;
 }
 
-.tooltip .tooltiptext {
-  visibility: hidden;
-  width: 200px;
-  background-color: #555;
-  color: #fff;
-  text-align: center;
-  border-radius: 6px;
-  padding: 5px;
-  position: absolute;
-  z-index: 1;
-  bottom: 125%;
-  left: 50%;
-  margin-left: -100px;
+.mini-switch input {
   opacity: 0;
-  transition: opacity 0.3s;
+  width: 0;
+  height: 0;
 }
 
-body.light .tooltip .tooltiptext {
-  background-color: #333;
+.mini-slider {
+  position: absolute;
+  cursor: pointer;
+  inset: 0;
+  background-color: var(--track);
+  transition: background var(--speed);
+  border-radius: 22px;
 }
 
-.tooltip:hover .tooltiptext {
-  visibility: visible;
+.mini-slider:before {
+  position: absolute;
+  content: "";
+  height: 16px;
+  width: 16px;
+  left: 3px;
+  bottom: 3px;
+  background-color: #fff;
+  transition: transform var(--speed);
+  border-radius: 50%;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.25);
+}
+
+.mini-switch input:checked + .mini-slider {
+  background: var(--accent-grad);
+}
+
+.mini-switch input:checked + .mini-slider:before {
+  transform: translateX(18px);
+}
+
+/* ---------------- Shortcuts ---------------- */
+
+.shortcut-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.shortcut-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 14px;
+  background: var(--panel-2);
+  border-radius: var(--radius-sm);
+  font-size: 13px;
+}
+
+.shortcut-key {
+  font-family: 'Consolas', 'SF Mono', monospace;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--accent);
+  background: var(--accent-soft);
+  border-radius: 6px;
+  padding: 3px 10px;
+  white-space: nowrap;
+}
+
+.shortcut-key.unset {
+  color: var(--text-dim);
+  background: transparent;
+  border: 1px dashed var(--border);
+}
+
+/* ---------------- Buttons ---------------- */
+
+.btn-ghost,
+.btn-danger {
+  padding: 10px 16px;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 600;
+  font-family: inherit;
+  transition: background var(--speed), color var(--speed), border-color var(--speed), box-shadow var(--speed);
+}
+
+.btn-ghost {
+  background: var(--panel-2);
+  color: var(--text);
+  border: 1px solid var(--border);
+}
+
+.btn-ghost:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.btn-danger {
+  width: 100%;
+  margin-top: 10px;
+  background: transparent;
+  color: var(--danger);
+  border: 1px solid var(--danger);
+}
+
+.btn-danger:hover,
+.btn-danger.confirming {
+  background: var(--danger);
+  color: #fff;
+}
+
+.button-row {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.button-row button {
+  flex: 1;
+}
+
+.autosave-note {
+  text-align: center;
+  font-size: 12px;
+  color: var(--text-dim);
+  margin-top: 8px;
+}
+
+/* ---------------- Toast ---------------- */
+
+.toast {
+  position: fixed;
+  left: 50%;
+  bottom: 24px;
+  transform: translate(-50%, 20px);
+  background: var(--panel-2);
+  color: var(--text);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  box-shadow: var(--shadow);
+  padding: 10px 20px;
+  font-size: 13px;
+  font-weight: 600;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.25s, transform 0.25s;
+  z-index: 1000;
+}
+
+.toast.show {
   opacity: 1;
+  transform: translate(-50%, 0);
+}
+
+.toast.error {
+  border-color: var(--danger);
+  color: var(--danger);
+}
+
+/* ---------------- Accessibility ---------------- */
+
+button:focus-visible,
+input:focus-visible,
+select:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
 }

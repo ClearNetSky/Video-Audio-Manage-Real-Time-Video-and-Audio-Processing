@@ -1,4 +1,62 @@
-# 🚀 Changelog v2.0.0
+# 🚀 Changelog
+
+## v2.2.0 — July 2026
+
+### 🌐 In-App Language Switching
+
+- **Language toggle button (EN/RU) in the popup header** — one click switches the whole interface instantly, no browser restart needed.
+- **Language setting in Advanced Settings** — Auto (browser language) / English / Русский.
+- Chrome's i18n API is locked to the browser UI language, so `shared/i18n.js` was rewritten to load `_locales/<lang>/messages.json` directly and re-localize the page at runtime.
+
+### ✨ New Features
+
+- **Playback Speed control** (0.25x–3x, pitch preserved) on the Video tab. Speed is only touched when it differs from 1x, so sites that manage playback themselves are left alone.
+- **Soft limiter (DynamicsCompressor)** automatically engages while volume boost is active to prevent clipping and distortion; volume boost extended to **300%**.
+- **Preset grid** — presets are now one-click cards instead of a dropdown + Apply button. Custom presets appear in the same grid with an × to delete (click twice to confirm).
+- **Per-tab Reset buttons** on the Video and Audio tabs.
+- **Double-click a value chip** to reset that single control to its default.
+- **Change indicators** — a dot appears on the Video / Audio / EQ tab when its settings differ from defaults.
+- **Disabled-state dimming** — the controls visibly dim when the extension is switched off.
+
+---
+
+## v2.1.0 — July 2026
+
+### 🐛 Critical Bug Fixes
+
+1. **Localization finally works** — the popup used an inline `<script>` blocked by Manifest V3 CSP, so `i18n.localizePage()` never ran and the UI always showed English. Initialization moved into `popup.js`.
+2. **Reverb, Delay and Reverse Stereo actually implemented** — the toggles existed in the UI, but the audio processor never created the corresponding nodes. Now: ConvolverNode with a generated impulse response (reverb), DelayNode with feedback (delay/echo), and ChannelSplitter/Merger rewiring (stereo reverse).
+3. **Sharpness and Color Temperature actually implemented** — previously the sliders/presets stored values that were silently ignored. Now implemented via injected SVG filters (`feConvolveMatrix` for sharpen, `feColorMatrix` for temperature). A Temperature slider was added to the popup (it existed only in presets before).
+4. **Vignette fixed** — `box-shadow: inset` does not render on top of `<video>` (replaced element), so the effect never showed. Reimplemented as an SVG filter with a radial-gradient overlay composited over the frame.
+5. **Sound no longer disappears**:
+   - The AudioContext could start `suspended` (autoplay policy) → silence. It is now resumed on playback.
+   - Disabling the extension used to call `audioContext.close()`, permanently muting the media element (a `MediaElementSource` cannot be re-created). The graph is now neutralized instead of destroyed.
+6. **Custom preset dropdown fix** — refreshing the list removed built-in presets Warm/Cool/High Contrast by mistake.
+7. **Keyboard shortcuts are real now** — the old options page pretended to record shortcuts into storage that nothing listened to. Replaced with proper `commands` in the manifest (Alt+Shift+V toggle, Alt+Shift+R reset) handled by the service worker, configurable at `chrome://extensions/shortcuts`.
+8. **i18n placeholders fixed** — messages used `{0}` which Chrome never substitutes; converted to `$1`.
+9. **No more console error spam** — `chrome.runtime.lastError` is now consumed when broadcasting to tabs without a content script.
+
+### ✨ Improvements
+
+- **Videos inside iframes are now processed** (`all_frames: true` + `match_about_blank`) — embedded players finally work.
+- **Media in shadow DOM** is picked up via a capture-phase `play` listener.
+- **Reverb quality setting is functional** — low/medium/high now control the impulse response length.
+- Removed dead options (processing mode, max audio channels, background-tab switch) that never did anything.
+- Mono sources are up-mixed to stereo before the stereo stage, so pan/reverse behave correctly.
+- Page↔extension messages now verify `event.source` and use namespaced types (`VAM_*`).
+- Version number in the UI is read from the manifest instead of being hard-coded.
+
+### 🎨 UI Redesign
+
+- Complete visual refresh: indigo→violet gradient accent, card-based layout, segmented tab bar with icons.
+- New toggle switches, slider thumbs, value chips, and a zero-line equalizer with modern vertical sliders (`writing-mode` instead of the deprecated `-webkit-appearance: slider-vertical`).
+- Toast notifications replace `alert()`/`confirm()`/`prompt()` (unreliable in MV3 popups); destructive actions use two-step button confirmation; saving a preset uses an inline input field.
+- Options page redesigned to match the popup, fully localized (it was English-only), with autosave and a live view of current keyboard shortcuts.
+- Dark / Light / System theme support done properly, plus `prefers-reduced-motion` support and visible focus outlines.
+
+---
+
+## v2.0.0
 
 ## 📅 Released: February 2026
 

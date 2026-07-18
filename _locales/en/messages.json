@@ -1,11 +1,15 @@
 {
   "extensionName": {
-    "message": "Video & Audio Manager",
-    "description": "Advanced real-time video and audio processing for any website with equalizer, effects and presets"
+    "message": "Video & Audio Manager"
   },
   "extensionDescription": {
-    "message": "Advanced real-time video and audio processing for any website with equalizer, effects and presets",
-    "description": "Advanced real-time video and audio processing for any website with equalizer, effects and presets"
+    "message": "Advanced real-time video and audio processing for any website with equalizer, effects and presets"
+  },
+  "cmdToggle": {
+    "message": "Toggle effects on/off"
+  },
+  "cmdReset": {
+    "message": "Reset all settings to defaults"
   },
   "enabled": {
     "message": "Enabled"
@@ -97,6 +101,15 @@
   "deletePreset": {
     "message": "Delete"
   },
+  "confirmBtn": {
+    "message": "OK"
+  },
+  "confirmQuestion": {
+    "message": "Sure?"
+  },
+  "resetBtn": {
+    "message": "Reset"
+  },
   "exportSettings": {
     "message": "Export Settings"
   },
@@ -154,6 +167,15 @@
   "presetDescriptionVoiceClarity": {
     "message": "Enhances vocal frequencies and reduces bass for clearer dialogue."
   },
+  "presetDescriptionWarm": {
+    "message": "Adds warm, cozy tones with enhanced low frequencies. Perfect for relaxed viewing."
+  },
+  "presetDescriptionCool": {
+    "message": "Creates cool, crisp tones with enhanced high frequencies. Ideal for modern content."
+  },
+  "presetDescriptionHighContrast": {
+    "message": "Dramatically enhances contrast and sharpness for maximum visual impact."
+  },
   "presetDescriptionCustom": {
     "message": "Custom preset. No description available."
   },
@@ -187,6 +209,9 @@
   "tooltipSharpness": {
     "message": "Adjusts edge definition (positive) or softens image (negative)"
   },
+  "tooltipTemperature": {
+    "message": "Shifts colors warmer (positive) or cooler (negative)"
+  },
   "tooltipHue": {
     "message": "Rotates all colors by the specified angle"
   },
@@ -201,6 +226,9 @@
   },
   "tooltipBlur": {
     "message": "Adds Gaussian blur to the video"
+  },
+  "tooltipVignette": {
+    "message": "Darkens the edges of the video for a cinematic look"
   },
   "tooltipVolume": {
     "message": "Adjusts the overall volume level"
@@ -224,13 +252,13 @@
     "message": "Are you sure you want to reset all settings to default?"
   },
   "confirmDelete": {
-    "message": "Are you sure you want to delete the \"{0}\" preset?"
+    "message": "Are you sure you want to delete the \"$1\" preset?"
   },
   "cannotDeleteBuiltIn": {
     "message": "Cannot delete built-in presets!"
   },
   "presetSaved": {
-    "message": "Preset \"{0}\" saved successfully!"
+    "message": "Preset \"$1\" saved successfully!"
   },
   "presetNotFound": {
     "message": "Preset not found!"
@@ -242,13 +270,31 @@
     "message": "Invalid settings file format!"
   },
   "errorParsingFile": {
-    "message": "Error parsing settings file: {0}"
+    "message": "Error parsing settings file: $1"
   },
   "enterPresetName": {
     "message": "Enter a name for your preset:"
   },
   "selectPresetMessage": {
-    "message": "Select a preset to see its description here."
+    "message": "Click a preset to apply it instantly."
+  },
+  "switchLanguage": {
+    "message": "Change language"
+  },
+  "languageLabel": {
+    "message": "Language"
+  },
+  "languageAuto": {
+    "message": "Auto (browser language)"
+  },
+  "playbackSpeed": {
+    "message": "Playback Speed"
+  },
+  "tooltipSpeed": {
+    "message": "Changes playback speed from 0.25x to 3x (pitch is preserved)"
+  },
+  "dblClickReset": {
+    "message": "Double-click to reset this control"
   },
   "center": {
     "message": "Center"
@@ -258,5 +304,65 @@
   },
   "right": {
     "message": "Right"
+  },
+  "appearanceSection": {
+    "message": "Appearance"
+  },
+  "themeLabel": {
+    "message": "Theme"
+  },
+  "themeDark": {
+    "message": "Dark"
+  },
+  "themeLight": {
+    "message": "Light"
+  },
+  "themeSystem": {
+    "message": "System"
+  },
+  "showTooltipsLabel": {
+    "message": "Show tooltips for controls"
+  },
+  "reverbQualityLabel": {
+    "message": "Reverb Quality"
+  },
+  "qualityLow": {
+    "message": "Low"
+  },
+  "qualityMedium": {
+    "message": "Medium"
+  },
+  "qualityHigh": {
+    "message": "High"
+  },
+  "reverbQualityHint": {
+    "message": "Higher quality uses a longer reverb tail and more CPU."
+  },
+  "shortcutsSection": {
+    "message": "Keyboard Shortcuts"
+  },
+  "shortcutsHint": {
+    "message": "Shortcuts are managed by the browser. Use the button below to change them."
+  },
+  "openShortcuts": {
+    "message": "Configure Shortcuts"
+  },
+  "shortcutNotSet": {
+    "message": "Not set"
+  },
+  "backupSection": {
+    "message": "Backup & Reset"
+  },
+  "resetToDefaultsBtn": {
+    "message": "Reset All Settings to Defaults"
+  },
+  "autosaveNote": {
+    "message": "Changes are saved automatically."
+  },
+  "settingsSaved": {
+    "message": "Settings saved"
+  },
+  "settingsResetDone": {
+    "message": "All settings have been reset to defaults"
   }
 }

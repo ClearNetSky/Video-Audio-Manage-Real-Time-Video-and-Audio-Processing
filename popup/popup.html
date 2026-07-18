@@ -11,305 +11,343 @@
 <body class="dark">
   <div class="container">
     <header>
-      <h1 data-i18n="extensionName">Video & Audio Manager</h1>
+      <div class="brand">
+        <div class="brand-logo" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+            <path d="M4 14v-4"/><path d="M8 17V7"/><path d="M12 20V4"/><path d="M16 17V7"/><path d="M20 14v-4"/>
+          </svg>
+        </div>
+        <div class="brand-text">
+          <h1 data-i18n="extensionName">Video & Audio Manager</h1>
+          <span class="version-pill">v<span id="versionValue">2.1.0</span></span>
+        </div>
+      </div>
       <div class="toggle-container">
-        <label class="switch">
+        <button id="langToggle" class="lang-btn" type="button">EN</button>
+        <label class="switch" title="On / Off">
           <input type="checkbox" id="extensionToggle">
           <span class="slider round"></span>
         </label>
-        <span id="toggleStatus" data-i18n="enabled">Enabled</span>
       </div>
     </header>
-    
-    <div class="tabs">
-      <button class="tab-btn active" data-tab="video">
+
+    <nav class="tabs" role="tablist">
+      <button class="tab-btn active" data-tab="video" role="tab">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="6" width="13" height="12" rx="2"/><path d="m15 10 6-3v10l-6-3"/></svg>
         <span data-i18n="videoTab">Video</span>
       </button>
-      <button class="tab-btn" data-tab="audio">
+      <button class="tab-btn" data-tab="audio" role="tab">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 5 6 9H2v6h4l5 4V5z"/><path d="M15.5 8.5a5 5 0 0 1 0 7"/><path d="M18.5 5.5a9 9 0 0 1 0 13"/></svg>
         <span data-i18n="audioTab">Audio</span>
       </button>
-      <button class="tab-btn" data-tab="equalizer">
-        <span data-i18n="equalizerTab">Equalizer</span>
+      <button class="tab-btn" data-tab="equalizer" role="tab">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M5 21v-6"/><path d="M5 11V3"/><path d="M12 21v-9"/><path d="M12 8V3"/><path d="M19 21v-4"/><path d="M19 13V3"/><circle cx="5" cy="13" r="2"/><circle cx="12" cy="10" r="2"/><circle cx="19" cy="15" r="2"/></svg>
+        <span data-i18n="equalizerTab">EQ</span>
       </button>
-      <button class="tab-btn" data-tab="presets">
+      <button class="tab-btn" data-tab="presets" role="tab">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m12 2 3.1 6.3 6.9 1-5 4.9 1.2 6.8L12 17.8 5.8 21l1.2-6.8-5-4.9 6.9-1L12 2z"/></svg>
         <span data-i18n="presetsTab">Presets</span>
       </button>
-      <button class="tab-btn" data-tab="donate">
-        <span data-i18n="donateTab">Donate</span>
+      <button class="tab-btn" data-tab="donate" role="tab" aria-label="Donate">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 14c1.5-1.4 3-3.2 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.8 0-3.4 1-4.5 2.5C10.9 4 9.3 3 7.5 3A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.1 3 5.5l7 7z"/></svg>
       </button>
-    </div>
-    
+    </nav>
+
     <!-- VIDEO TAB -->
     <div class="tab-content active" id="video-tab">
+      <div class="tab-toolbar">
+        <span class="tab-title" data-i18n="videoTab">Video</span>
+        <button id="videoResetBtn" class="btn-ghost btn-small" data-i18n="resetBtn">Reset</button>
+      </div>
+
       <div class="control-group">
-        <label for="brightness" data-i18n="brightness">Brightness</label>
-        <div class="slider-container">
-          <input type="range" id="brightness" min="0" max="200" value="100">
+        <div class="control-head">
+          <label for="speed" data-i18n="playbackSpeed">Playback Speed</label>
+          <span class="value" id="speedValue">1x</span>
+        </div>
+        <input type="range" id="speed" min="25" max="300" step="5" value="100">
+      </div>
+
+      <div class="control-group">
+        <div class="control-head">
+          <label for="brightness" data-i18n="brightness">Brightness</label>
           <span class="value" id="brightnessValue">100%</span>
         </div>
+        <input type="range" id="brightness" min="0" max="200" value="100">
       </div>
-      
+
       <div class="control-group">
-        <label for="contrast" data-i18n="contrast">Contrast</label>
-        <div class="slider-container">
-          <input type="range" id="contrast" min="0" max="200" value="100">
+        <div class="control-head">
+          <label for="contrast" data-i18n="contrast">Contrast</label>
           <span class="value" id="contrastValue">100%</span>
         </div>
+        <input type="range" id="contrast" min="0" max="200" value="100">
       </div>
-      
+
       <div class="control-group">
-        <label for="saturation" data-i18n="saturation">Saturation</label>
-        <div class="slider-container">
-          <input type="range" id="saturation" min="0" max="200" value="100">
+        <div class="control-head">
+          <label for="saturation" data-i18n="saturation">Saturation</label>
           <span class="value" id="saturationValue">100%</span>
         </div>
+        <input type="range" id="saturation" min="0" max="200" value="100">
       </div>
-      
+
       <div class="control-group">
-        <label for="sharpness" data-i18n="sharpness">Sharpness</label>
-        <div class="slider-container">
-          <input type="range" id="sharpness" min="-100" max="100" value="0">
+        <div class="control-head">
+          <label for="sharpness" data-i18n="sharpness">Sharpness</label>
           <span class="value" id="sharpnessValue">0</span>
         </div>
+        <input type="range" id="sharpness" min="-100" max="100" value="0">
       </div>
-      
+
       <div class="control-group">
-        <label for="hue" data-i18n="hue">Hue</label>
-        <div class="slider-container">
-          <input type="range" id="hue" min="-180" max="180" value="0">
-          <span class="value" id="hueValue">0°</span>
+        <div class="control-head">
+          <label for="temperature" data-i18n="temperature">Temperature</label>
+          <span class="value" id="temperatureValue">0</span>
         </div>
+        <input type="range" id="temperature" min="-100" max="100" value="0">
       </div>
-      
+
       <div class="control-group">
-        <label for="grayscale" data-i18n="grayscale">Grayscale</label>
-        <div class="slider-container">
-          <input type="range" id="grayscale" min="0" max="100" value="0">
+        <div class="control-head">
+          <label for="hue" data-i18n="hue">Hue</label>
+          <span class="value" id="hueValue">0&deg;</span>
+        </div>
+        <input type="range" id="hue" min="-180" max="180" value="0">
+      </div>
+
+      <div class="control-group">
+        <div class="control-head">
+          <label for="grayscale" data-i18n="grayscale">Grayscale</label>
           <span class="value" id="grayscaleValue">0%</span>
         </div>
+        <input type="range" id="grayscale" min="0" max="100" value="0">
       </div>
-      
+
       <div class="control-group">
-        <label for="invert" data-i18n="invertColors">Invert Colors</label>
-        <div class="slider-container">
-          <input type="range" id="invert" min="0" max="100" value="0">
+        <div class="control-head">
+          <label for="invert" data-i18n="invertColors">Invert Colors</label>
           <span class="value" id="invertValue">0%</span>
         </div>
+        <input type="range" id="invert" min="0" max="100" value="0">
       </div>
-      
+
       <div class="control-group">
-        <label for="sepia" data-i18n="sepia">Sepia</label>
-        <div class="slider-container">
-          <input type="range" id="sepia" min="0" max="100" value="0">
+        <div class="control-head">
+          <label for="sepia" data-i18n="sepia">Sepia</label>
           <span class="value" id="sepiaValue">0%</span>
         </div>
+        <input type="range" id="sepia" min="0" max="100" value="0">
       </div>
-      
+
       <div class="control-group">
-        <label for="blur" data-i18n="blur">Blur</label>
-        <div class="slider-container">
-          <input type="range" id="blur" min="0" max="20" value="0">
+        <div class="control-head">
+          <label for="blur" data-i18n="blur">Blur</label>
           <span class="value" id="blurValue">0px</span>
         </div>
+        <input type="range" id="blur" min="0" max="20" value="0">
       </div>
-      
+
       <div class="control-group">
-        <label for="opacity" data-i18n="opacity">Opacity</label>
-        <div class="slider-container">
-          <input type="range" id="opacity" min="0" max="100" value="100">
+        <div class="control-head">
+          <label for="opacity" data-i18n="opacity">Opacity</label>
           <span class="value" id="opacityValue">100%</span>
         </div>
+        <input type="range" id="opacity" min="0" max="100" value="100">
       </div>
-      
+
       <div class="control-group">
-        <label for="vignette" data-i18n="vignette">Vignette</label>
-        <div class="slider-container">
-          <input type="range" id="vignette" min="0" max="100" value="0">
+        <div class="control-head">
+          <label for="vignette" data-i18n="vignette">Vignette</label>
           <span class="value" id="vignetteValue">0%</span>
         </div>
+        <input type="range" id="vignette" min="0" max="100" value="0">
       </div>
     </div>
-    
+
     <!-- AUDIO TAB -->
     <div class="tab-content" id="audio-tab">
+      <div class="tab-toolbar">
+        <span class="tab-title" data-i18n="audioTab">Audio</span>
+        <button id="audioResetBtn" class="btn-ghost btn-small" data-i18n="resetBtn">Reset</button>
+      </div>
+
       <div class="control-group">
-        <label for="volume" data-i18n="volumeBoost">Volume Boost</label>
-        <div class="slider-container">
-          <input type="range" id="volume" min="0" max="200" value="100">
+        <div class="control-head">
+          <label for="volume" data-i18n="volumeBoost">Volume Boost</label>
           <span class="value" id="volumeValue">100%</span>
         </div>
+        <input type="range" id="volume" min="0" max="300" value="100">
       </div>
-      
+
       <div class="control-group">
-        <label for="bass" data-i18n="bass">Bass</label>
-        <div class="slider-container">
-          <input type="range" id="bass" min="-20" max="20" value="0">
+        <div class="control-head">
+          <label for="bass" data-i18n="bass">Bass</label>
           <span class="value" id="bassValue">0dB</span>
         </div>
+        <input type="range" id="bass" min="-20" max="20" value="0">
       </div>
-      
+
       <div class="control-group">
-        <label for="pan" data-i18n="stereoPan">Stereo Pan</label>
-        <div class="slider-container">
-          <input type="range" id="pan" min="-100" max="100" value="0">
+        <div class="control-head">
+          <label for="pan" data-i18n="stereoPan">Stereo Pan</label>
           <span class="value" id="panValue" data-i18n="center">Center</span>
         </div>
+        <input type="range" id="pan" min="-100" max="100" value="0">
       </div>
-      
+
       <div class="control-group checkbox-group">
-        <input type="checkbox" id="stereoReverse">
         <label for="stereoReverse" data-i18n="reverseStereo">Reverse Stereo</label>
+        <label class="mini-switch">
+          <input type="checkbox" id="stereoReverse">
+          <span class="mini-slider"></span>
+        </label>
       </div>
-      
+
       <div class="control-group checkbox-group">
-        <input type="checkbox" id="reverb">
         <label for="reverb" data-i18n="enableReverb">Enable Reverb</label>
+        <label class="mini-switch">
+          <input type="checkbox" id="reverb">
+          <span class="mini-slider"></span>
+        </label>
       </div>
-      
-      <div class="control-group" id="reverbLevelGroup" style="display:none;">
-        <label for="reverbLevel" data-i18n="reverbLevel">Reverb Level</label>
-        <div class="slider-container">
-          <input type="range" id="reverbLevel" min="0" max="100" value="30">
+
+      <div class="control-group sub-control" id="reverbLevelGroup" style="display:none;">
+        <div class="control-head">
+          <label for="reverbLevel" data-i18n="reverbLevel">Reverb Level</label>
           <span class="value" id="reverbLevelValue">30%</span>
         </div>
+        <input type="range" id="reverbLevel" min="0" max="100" value="30">
       </div>
-      
+
       <div class="control-group checkbox-group">
-        <input type="checkbox" id="delay">
         <label for="delay" data-i18n="enableDelay">Enable Delay</label>
+        <label class="mini-switch">
+          <input type="checkbox" id="delay">
+          <span class="mini-slider"></span>
+        </label>
       </div>
-      
-      <div class="control-group" id="delayLevelGroup" style="display:none;">
-        <label for="delayLevel" data-i18n="delayLevel">Delay Level</label>
-        <div class="slider-container">
-          <input type="range" id="delayLevel" min="0" max="100" value="30">
+
+      <div class="control-group sub-control" id="delayLevelGroup" style="display:none;">
+        <div class="control-head">
+          <label for="delayLevel" data-i18n="delayLevel">Delay Level</label>
           <span class="value" id="delayLevelValue">30%</span>
         </div>
+        <input type="range" id="delayLevel" min="0" max="100" value="30">
       </div>
     </div>
-    
+
     <!-- EQUALIZER TAB -->
     <div class="tab-content" id="equalizer-tab">
       <div class="eq-container">
         <div class="eq-header">
-          <h3 data-i18n="equalizerTab">10-Band Equalizer</h3>
-          <button id="eqResetBtn" class="eq-reset-btn">Reset</button>
+          <h3 data-i18n="equalizerTab">Equalizer</h3>
+          <button id="eqResetBtn" class="btn-ghost btn-small" data-i18n="resetBtn">Reset</button>
         </div>
         <div class="eq-bands">
           <div class="eq-band-wrapper">
+            <span class="eq-value" id="eq-32-value">0</span>
             <input type="range" class="eq-slider" id="eq-32" min="-12" max="12" value="0" orient="vertical">
-            <span class="eq-value" id="eq-32-value">0dB</span>
-            <span class="eq-label">32Hz</span>
+            <span class="eq-label">32</span>
           </div>
           <div class="eq-band-wrapper">
+            <span class="eq-value" id="eq-64-value">0</span>
             <input type="range" class="eq-slider" id="eq-64" min="-12" max="12" value="0" orient="vertical">
-            <span class="eq-value" id="eq-64-value">0dB</span>
-            <span class="eq-label">64Hz</span>
+            <span class="eq-label">64</span>
           </div>
           <div class="eq-band-wrapper">
+            <span class="eq-value" id="eq-125-value">0</span>
             <input type="range" class="eq-slider" id="eq-125" min="-12" max="12" value="0" orient="vertical">
-            <span class="eq-value" id="eq-125-value">0dB</span>
-            <span class="eq-label">125Hz</span>
+            <span class="eq-label">125</span>
           </div>
           <div class="eq-band-wrapper">
+            <span class="eq-value" id="eq-250-value">0</span>
             <input type="range" class="eq-slider" id="eq-250" min="-12" max="12" value="0" orient="vertical">
-            <span class="eq-value" id="eq-250-value">0dB</span>
-            <span class="eq-label">250Hz</span>
+            <span class="eq-label">250</span>
           </div>
           <div class="eq-band-wrapper">
+            <span class="eq-value" id="eq-500-value">0</span>
             <input type="range" class="eq-slider" id="eq-500" min="-12" max="12" value="0" orient="vertical">
-            <span class="eq-value" id="eq-500-value">0dB</span>
-            <span class="eq-label">500Hz</span>
+            <span class="eq-label">500</span>
           </div>
           <div class="eq-band-wrapper">
+            <span class="eq-value" id="eq-1k-value">0</span>
             <input type="range" class="eq-slider" id="eq-1k" min="-12" max="12" value="0" orient="vertical">
-            <span class="eq-value" id="eq-1k-value">0dB</span>
-            <span class="eq-label">1kHz</span>
+            <span class="eq-label">1k</span>
           </div>
           <div class="eq-band-wrapper">
+            <span class="eq-value" id="eq-2k-value">0</span>
             <input type="range" class="eq-slider" id="eq-2k" min="-12" max="12" value="0" orient="vertical">
-            <span class="eq-value" id="eq-2k-value">0dB</span>
-            <span class="eq-label">2kHz</span>
+            <span class="eq-label">2k</span>
           </div>
           <div class="eq-band-wrapper">
+            <span class="eq-value" id="eq-4k-value">0</span>
             <input type="range" class="eq-slider" id="eq-4k" min="-12" max="12" value="0" orient="vertical">
-            <span class="eq-value" id="eq-4k-value">0dB</span>
-            <span class="eq-label">4kHz</span>
+            <span class="eq-label">4k</span>
           </div>
           <div class="eq-band-wrapper">
+            <span class="eq-value" id="eq-8k-value">0</span>
             <input type="range" class="eq-slider" id="eq-8k" min="-12" max="12" value="0" orient="vertical">
-            <span class="eq-value" id="eq-8k-value">0dB</span>
-            <span class="eq-label">8kHz</span>
+            <span class="eq-label">8k</span>
           </div>
           <div class="eq-band-wrapper">
+            <span class="eq-value" id="eq-16k-value">0</span>
             <input type="range" class="eq-slider" id="eq-16k" min="-12" max="12" value="0" orient="vertical">
-            <span class="eq-value" id="eq-16k-value">0dB</span>
-            <span class="eq-label">16kHz</span>
+            <span class="eq-label">16k</span>
           </div>
         </div>
+        <div class="eq-axis"><span>Hz</span><span>&plusmn;12dB</span></div>
       </div>
     </div>
-    
+
     <!-- PRESETS TAB -->
     <div class="tab-content" id="presets-tab">
-      <div class="preset-controls">
-        <select id="presetSelect">
-          <option value="default" data-i18n="presetDefault">Default</option>
-          <option value="cinematic" data-i18n="presetCinematic">Cinematic</option>
-          <option value="vintage" data-i18n="presetVintage">Vintage</option>
-          <option value="night" data-i18n="presetNight">Night Mode</option>
-          <option value="bassBoost" data-i18n="presetBassBoost">Bass Boost</option>
-          <option value="voiceClarity" data-i18n="presetVoiceClarity">Voice Clarity</option>
-          <option value="warm" data-i18n="presetWarm">Warm Tones</option>
-          <option value="cool" data-i18n="presetCool">Cool Tones</option>
-          <option value="highContrast" data-i18n="presetHighContrast">High Contrast</option>
-        </select>
-        <button id="applyPresetBtn" data-i18n="applyPreset">Apply</button>
-        <button id="savePresetBtn" data-i18n="savePreset">Save Current</button>
-        <button id="deletePresetBtn" data-i18n="deletePreset">Delete</button>
+      <div class="tab-toolbar">
+        <span class="tab-title" data-i18n="presetsTab">Presets</span>
       </div>
-      
+
+      <div class="preset-grid" id="presetGrid"></div>
+
+      <div class="preset-description" id="presetDescription" data-i18n="selectPresetMessage">
+        Click a preset to apply it.
+      </div>
+
+      <div class="save-preset-row">
+        <input type="text" id="presetNameInput" maxlength="30" data-i18n-placeholder="enterPresetName" placeholder="Enter a name for your preset:">
+        <button id="confirmSavePresetBtn" class="btn-primary" data-i18n="savePreset">Save Current</button>
+      </div>
+
       <div class="import-export">
-        <button id="exportBtn" data-i18n="exportSettings">Export Settings</button>
-        <button id="importBtn" data-i18n="importSettings">Import Settings</button>
+        <button id="exportBtn" class="btn-ghost" data-i18n="exportSettings">Export Settings</button>
+        <button id="importBtn" class="btn-ghost" data-i18n="importSettings">Import Settings</button>
         <input type="file" id="importFile" accept=".json" style="display: none;">
       </div>
-      
-      <div class="preset-description" id="presetDescription" data-i18n="selectPresetMessage">
-        Select a preset to see its description here.
-      </div>
     </div>
-    
+
     <!-- DONATE TAB -->
     <div class="tab-content" id="donate-tab">
-      <h3 data-i18n="supportDeveloper">Support the Developer</h3>
-      <p data-i18n="donateMessage">If you enjoy using Video & Audio Manager, consider supporting further development:</p>
-      
-      <div class="donation-options">
-        <div class="donation-option">
-          <h4 data-i18n="buyMeCoffee">Buy Me a Coffee</h4>
-          <button id="coffeeBtn" data-i18n="donateViaCoffee">Donate via Buy Me a Coffee</button>
+      <div class="donation-option">
+        <div class="donation-icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 14c1.5-1.4 3-3.2 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.8 0-3.4 1-4.5 2.5C10.9 4 9.3 3 7.5 3A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.1 3 5.5l7 7z"/></svg>
         </div>
+        <h3 data-i18n="supportDeveloper">Support the Developer</h3>
+        <p data-i18n="donateMessage">If you enjoy using Video & Audio Manager, consider supporting further development:</p>
+        <button id="coffeeBtn" class="btn-primary" data-i18n="donateViaCoffee">Donate via Buy Me a Coffee</button>
       </div>
-      
+
       <div class="credits">
         <p data-i18n="developedBy">Developed by Aristarh Ucolov</p>
-        <p><span data-i18n="version">Version</span> 2.0.0</p>
+        <p><span data-i18n="version">Version</span> <span class="credits-version">2.1.0</span></p>
       </div>
     </div>
-    
+
     <!-- QUICK ACTIONS -->
     <div class="quick-actions">
-      <button id="resetBtn" data-i18n="resetAll">Reset All</button>
-      <button id="advancedBtn" data-i18n="advancedSettings">Advanced Settings</button>
+      <button id="resetBtn" class="btn-ghost btn-danger-text" data-i18n="resetAll">Reset All</button>
+      <button id="advancedBtn" class="btn-ghost" data-i18n="advancedSettings">Advanced Settings</button>
     </div>
   </div>
-  
-  <script>
-    // Initialize localization when DOM is ready
-    document.addEventListener('DOMContentLoaded', () => {
-      i18n.localizePage();
-    });
-  </script>
+
+  <div id="toast" class="toast" role="status"></div>
 </body>
 </html>

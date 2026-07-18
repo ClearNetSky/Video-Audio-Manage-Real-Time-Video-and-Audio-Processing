@@ -5,102 +5,90 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Video & Audio Manager - Advanced Settings</title>
   <link rel="stylesheet" href="options.css">
+  <script src="../shared/i18n.js"></script>
   <script src="options.js" defer></script>
 </head>
 <body class="dark">
   <div class="container">
     <header>
-      <h1>Advanced Settings</h1>
+      <div class="brand-logo" aria-hidden="true">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+          <path d="M4 14v-4"/><path d="M8 17V7"/><path d="M12 20V4"/><path d="M16 17V7"/><path d="M20 14v-4"/>
+        </svg>
+      </div>
+      <div>
+        <h1 data-i18n="advancedSettings">Advanced Settings</h1>
+        <p class="subtitle"><span data-i18n="extensionName">Video & Audio Manager</span> &middot; v<span id="versionValue"></span></p>
+      </div>
     </header>
-    
+
     <div class="settings-section">
-      <h2>Performance Settings</h2>
-      
+      <h2 data-i18n="appearanceSection">Appearance</h2>
+
       <div class="control-group">
-        <label for="processingMode">Processing Mode:</label>
-        <select id="processingMode">
-          <option value="auto">Auto (Recommended)</option>
-          <option value="high">High Quality</option>
-          <option value="low">Low CPU Usage</option>
+        <label for="languageSelect" data-i18n="languageLabel">Language</label>
+        <select id="languageSelect">
+          <option value="auto" data-i18n="languageAuto">Auto (browser language)</option>
+          <option value="en">English</option>
+          <option value="ru">Русский</option>
         </select>
       </div>
-      
+
       <div class="control-group">
-        <label for="maxAudioChannels">Max Audio Channels to Process:</label>
-        <input type="number" id="maxAudioChannels" min="1" max="16" value="2">
-      </div>
-      
-      <div class="control-group checkbox-group">
-        <input type="checkbox" id="disableForBackgroundTabs" checked>
-        <label for="disableForBackgroundTabs">Disable processing for background tabs</label>
-      </div>
-    </div>
-    
-    <div class="settings-section">
-      <h2>Keyboard Shortcuts</h2>
-      
-      <div class="control-group">
-        <label for="toggleShortcut">Toggle Extension:</label>
-        <input type="text" id="toggleShortcut" placeholder="Ctrl+Shift+V" readonly>
-        <button id="setToggleShortcut">Set Shortcut</button>
-      </div>
-      
-      <div class="control-group">
-        <label for="resetShortcut">Reset Settings:</label>
-        <input type="text" id="resetShortcut" placeholder="Ctrl+Shift+R" readonly>
-        <button id="setResetShortcut">Set Shortcut</button>
-      </div>
-    </div>
-    
-    <div class="settings-section">
-      <h2>Audio Settings</h2>
-      
-      <div class="control-group">
-        <label for="reverbQuality">Reverb Quality:</label>
-        <select id="reverbQuality">
-          <option value="low">Low</option>
-          <option value="medium" selected>Medium</option>
-          <option value="high">High</option>
-        </select>
-      </div>
-    </div>
-    
-    <div class="settings-section">
-      <h2>UI Settings</h2>
-      
-      <div class="control-group">
-        <label for="uiTheme">Theme:</label>
+        <label for="uiTheme" data-i18n="themeLabel">Theme</label>
         <select id="uiTheme">
-          <option value="dark">Dark</option>
-          <option value="light">Light</option>
-          <option value="system">System</option>
+          <option value="dark" data-i18n="themeDark">Dark</option>
+          <option value="light" data-i18n="themeLight">Light</option>
+          <option value="system" data-i18n="themeSystem">System</option>
         </select>
       </div>
-      
+
       <div class="control-group checkbox-group">
-        <input type="checkbox" id="showTooltips" checked>
-        <label for="showTooltips">Show tooltips for controls</label>
+        <label for="showTooltips" data-i18n="showTooltipsLabel">Show tooltips for controls</label>
+        <label class="mini-switch">
+          <input type="checkbox" id="showTooltips" checked>
+          <span class="mini-slider"></span>
+        </label>
       </div>
     </div>
-    
+
     <div class="settings-section">
-      <h2>Reset & Backup</h2>
-      
+      <h2 data-i18n="audioTab">Audio</h2>
+
       <div class="control-group">
-        <button id="exportAllSettings">Export All Settings</button>
-        <button id="importAllSettings">Import All Settings</button>
+        <label for="reverbQuality" data-i18n="reverbQualityLabel">Reverb Quality</label>
+        <select id="reverbQuality">
+          <option value="low" data-i18n="qualityLow">Low</option>
+          <option value="medium" selected data-i18n="qualityMedium">Medium</option>
+          <option value="high" data-i18n="qualityHigh">High</option>
+        </select>
+        <p class="hint" data-i18n="reverbQualityHint">Higher quality uses a longer reverb tail and more CPU.</p>
+      </div>
+    </div>
+
+    <div class="settings-section">
+      <h2 data-i18n="shortcutsSection">Keyboard Shortcuts</h2>
+
+      <div class="shortcut-list" id="shortcutList"></div>
+      <p class="hint" data-i18n="shortcutsHint">Shortcuts are managed by the browser. Use the button below to change them.</p>
+      <button id="openShortcuts" class="btn-ghost" data-i18n="openShortcuts">Configure Shortcuts</button>
+    </div>
+
+    <div class="settings-section">
+      <h2 data-i18n="backupSection">Backup &amp; Reset</h2>
+
+      <div class="button-row">
+        <button id="exportAllSettings" class="btn-ghost" data-i18n="exportSettings">Export Settings</button>
+        <button id="importAllSettings" class="btn-ghost" data-i18n="importSettings">Import Settings</button>
         <input type="file" id="importAllSettingsFile" accept=".json" style="display: none;">
       </div>
-      
-      <div class="control-group">
-        <button id="resetToDefaults">Reset All Settings to Defaults</button>
-      </div>
+
+      <button id="resetToDefaults" class="btn-danger" data-i18n="resetToDefaultsBtn">Reset All Settings to Defaults</button>
     </div>
-    
-    <div class="footer">
-      <button id="saveSettings">Save Settings</button>
-      <button id="cancelChanges">Cancel</button>
-    </div>
+
+    <p class="autosave-note" data-i18n="autosaveNote">Changes are saved automatically.</p>
   </div>
+
+  <div id="toast" class="toast" role="status"></div>
 </body>
 </html>
